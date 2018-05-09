@@ -1,0 +1,13 @@
+{
+  "name": "samsung-radio",
+  "version": "0.0.1",
+  "description": "Samsung radio protocol module",
+  "license": "MIT",
+  "dependencies": {
+    "microbit-dal": "lancaster-university/microbit-dal"
+  },
+  "targetDependencies": {},
+  "extraIncludes":[
+    "inc"
+  ]
+}
