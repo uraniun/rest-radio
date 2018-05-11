@@ -91,7 +91,7 @@ void RadioREST::sendDataPacket(DataPacket* p)
     radio.send(&buf);
 }
 
-DataPacket* RadioREST::composePacket(uint8_t type, uint8_t subtype, uint8_t* payload, uint8_t payload_len, uint16_t app_id, uint16_t packet_id)
+DataPacket* RadioREST::composePacket(uint8_t type, uint8_t* payload, uint8_t payload_len, uint16_t app_id, uint16_t packet_id)
 {
     uint32_t id = (packet_id != 0) ? packet_id : microbit_random(65535);
 
@@ -99,7 +99,6 @@ DataPacket* RadioREST::composePacket(uint8_t type, uint8_t subtype, uint8_t* pay
     p->app_id = app_id;
     p->id = id;
     p->request_type = type;
-    p->subtype = subtype;
 
     uint32_t len = min(MAX_PAYLOAD_SIZE, payload_len);
 
@@ -121,10 +120,17 @@ int RadioREST::send(DataPacket* p)
 
 DynamicType RadioREST::getRequest(ManagedString url, bool repeating)
 {
-    DataPacket *p = composePacket(REQUEST_TYPE_GET_REQUEST | ((repeating) ? REQUEST_TYPE_REPEATING : 0), SUBTYPE_STRING, (uint8_t*)url.toCharArray(), url.length() + 1, appId);
+    // + 2 for null terminator and type byte
+    uint8_t bufLen = url.length() + 2;
+    uint8_t* urlBuf = (uint8_t *)malloc(bufLen);
+    urlBuf[0] |= SUBTYPE_STRING;
+    memcpy(urlBuf + 1,url.toCharArray(), bufLen - 1);
+
+    DataPacket *p = composePacket(REQUEST_TYPE_GET_REQUEST | ((repeating) ? REQUEST_TYPE_REPEATING : 0), urlBuf, bufLen, appId);
     uint32_t id = p->id;
     sendDataPacket(p);
     addToQueue(&txQueue, p);
+    // should be wake on event?
     fiber_wait_for_event(RADIO_REST_ID, id);
     return recv(id);
 }
@@ -132,7 +138,13 @@ DynamicType RadioREST::getRequest(ManagedString url, bool repeating)
 // returns the message bus value to use
 uint16_t RadioREST::getRequestAsync(ManagedString url, bool repeating)
 {
-    DataPacket *p = composePacket(REQUEST_TYPE_GET_REQUEST | ((repeating) ? REQUEST_TYPE_REPEATING : 0), SUBTYPE_STRING, (uint8_t*)url.toCharArray(), url.length() + 1, appId);
+    // + 2 for null terminator and type byte
+    uint8_t bufLen = url.length() + 2;
+    uint8_t* urlBuf = (uint8_t *)malloc(bufLen);
+    urlBuf[0] |= SUBTYPE_STRING;
+    memcpy(urlBuf + 1,url.toCharArray(), bufLen - 1);
+
+    DataPacket *p = composePacket(REQUEST_TYPE_GET_REQUEST | ((repeating) ? REQUEST_TYPE_REPEATING : 0), urlBuf, bufLen, appId);
     uint32_t id = p->id;
     sendDataPacket(p);
     addToQueue(&txQueue, p);
@@ -156,6 +168,17 @@ void RadioREST::idleTick()
 
         if (p->no_response_count > REST_RADIO_NO_RESPONSE_THRESHOLD && !retransmitted)
         {
+            p->retry_count++;
+
+            if (p->retry_count > REST_RADIO_RETRY_THRESHOLD)
+            {
+                MicroBitEvent(RADIO_REST_ID, p->id);
+                DataPacket *t = removeFromQueue(&txQueue, p->id);
+
+                if (t)
+                    delete t;
+            }
+
             sendDataPacket(p);
             p->no_response_count = 0;
             retransmitted = true;
@@ -214,7 +237,7 @@ void RadioREST::packetReceived()
     addToQueue(&rxQueue, p);
 
     // send an ACK.
-    DataPacket *ack = composePacket(REQUEST_TYPE_STATUS_ACK, SUBTYPE_STRING, NULL, 0, p->app_id, p->id);
+    DataPacket *ack = composePacket(REQUEST_TYPE_STATUS_ACK, NULL, 0, p->app_id, p->id);
     sendDataPacket(ack);
     log_string("ACK");
 
@@ -230,8 +253,12 @@ DynamicType RadioREST::recv(uint16_t id)
 
     if (t == NULL)
         return DynamicType();
+    
+    log_string("VALID\r\n");
+    log_num(t->len);
+    log_num(t->len - REST_HEADER_SIZE);
 
-    DynamicType dt(t->len - REST_HEADER_SIZE, t->payload, t->subtype);
+    DynamicType dt(t->len - REST_HEADER_SIZE, t->payload);
 
     delete t;
 

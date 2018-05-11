@@ -257,6 +257,7 @@ int Radio::getRSSI()
   */
 int Radio::enable()
 {
+    log_string("ENABLE");
     // If the device is already initialised, then there's nothing to do.
     if (status & RADIO_STATUS_INITIALISED)
         return MICROBIT_OK;

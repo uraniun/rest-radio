@@ -6,11 +6,12 @@
 #define SLIP_ESC_END            0xDC
 #define SLIP_ESC_ESC            0xDD
 
+extern void log_string_priv(const char *);
+
+// ack and drop
 void Hub::onRadioPacket(MicroBitEvent e)
 {
     DataPacket* r = radio.rest.recvRaw(e.value);
-
-    serial.printf("ON RADIO");
 
     if (r == NULL)
         return;
@@ -19,13 +20,10 @@ void Hub::onRadioPacket(MicroBitEvent e)
 
     uint16_t len = r->len;
 
-    serial.printf("DATA %d\r\n",r->len);
-
     for (uint16_t i = 0; i < len; i++)
     {
         if (packetPtr[i] == SLIP_ESC)
         {
-            serial.printf("ESC");
             serial.putc(SLIP_ESC);
             serial.putc(SLIP_ESC_ESC);
             continue;
@@ -33,7 +31,6 @@ void Hub::onRadioPacket(MicroBitEvent e)
 
         if(packetPtr[i] == SLIP_END)
         {
-            serial.printf("END");
             serial.putc(SLIP_ESC);
             serial.putc(SLIP_ESC_END);
             continue;
@@ -49,7 +46,7 @@ void Hub::onRadioPacket(MicroBitEvent e)
 
 void Hub::onSerialPacket(MicroBitEvent)
 {
-    uint32_t buffedSize = 0;
+    log_string_priv("PACKET");
 
     DataPacket* packet = (DataPacket*) malloc(sizeof(DataPacket));
     uint8_t* packetPtr = (uint8_t*)packet;
@@ -58,7 +55,7 @@ void Hub::onSerialPacket(MicroBitEvent)
 
     while ((c = serial.read()) != SLIP_END)
     {
-        if (buffedSize >= RADIO_MAX_PACKET_SIZE)
+        if (packet->len >= RADIO_MAX_PACKET_SIZE)
             continue;
 
         if (c == SLIP_ESC)
@@ -71,25 +68,30 @@ void Hub::onSerialPacket(MicroBitEvent)
                 c = SLIP_ESC;
             else
             {
-                buffedSize += 2;
-                *(packetPtr++) = c;
-                *(packetPtr++) = next;
-                continue;
+                *packetPtr++ = c;
+                *packetPtr++ = next;
+                packet->len += 2;
             }
+
+            continue;
         }
 
-        buffedSize++;
+        packet->len++;
 
-        *(packetPtr++) = c;
+        *packetPtr++ = c;
     }
 
     radio.rest.send(packet);
+
+    serial.eventOn((char)SLIP_END);
 }
 
 Hub::Hub(Radio& r, MicroBitSerial& s, MicroBitMessageBus& b) : radio(r), serial(s)
 {
     b.listen(RADIO_REST_ID, MICROBIT_EVT_ANY, this, &Hub::onRadioPacket);
     b.listen(MICROBIT_ID_SERIAL, MICROBIT_SERIAL_EVT_DELIM_MATCH, this, &Hub::onSerialPacket);
+
+    s.setRxBufferSize(255);
 
     s.eventOn((char)SLIP_END);
 }

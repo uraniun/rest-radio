@@ -1,13 +1,15 @@
 #include "DynamicType.h"
 #include "ErrorNo.h"
 
-void DynamicType::init(uint8_t len, uint8_t* payload, uint8_t subtype)
+extern void log_string(const char *);
+extern void log_num(int);
+
+void DynamicType::init(uint8_t len, uint8_t* payload)
 {
     ptr = (SubTyped *) malloc(sizeof(SubTyped) + len);
     ptr->init();
 
     ptr->len = len;
-    ptr->subtype = subtype;
 
     // Copy in the data buffer, if provided.
     if (len > 0)
@@ -16,12 +18,12 @@ void DynamicType::init(uint8_t len, uint8_t* payload, uint8_t subtype)
 
 DynamicType::DynamicType()
 {
-    this->init(0, NULL, 0);
+    this->init(0, NULL);
 }
 
-DynamicType::DynamicType(uint8_t len, uint8_t* payload, uint8_t subtype)
+DynamicType::DynamicType(uint8_t len, uint8_t* payload)
 {
-    this->init(len, payload, subtype);
+    this->init(len, payload);
 }
 
 DynamicType::DynamicType(const DynamicType &buffer)
@@ -47,6 +49,31 @@ DynamicType& DynamicType::operator = (const DynamicType &p)
     return *this;
 }
 
+uint8_t* DynamicType::getPointerToIndex(int index)
+{
+    uint8_t* payloadPtr = ptr->payload;
+    uint8_t* payloadEnd = ptr->payload + ptr->len;
+
+    for (int i = 0; i < index; i++)
+    {
+        if (payloadPtr >= payloadEnd)
+            return NULL;
+
+        uint8_t subtype =  *payloadPtr++;
+
+        if (subtype & SUBTYPE_STRING)
+            while(*payloadPtr++ != 0);
+
+        if (subtype & SUBTYPE_INT)
+            payloadPtr += sizeof(int);
+        
+        if (subtype & SUBTYPE_FLOAT)
+            payloadPtr += sizeof(float);
+    }
+
+    return payloadPtr;
+}
+
 uint8_t* DynamicType::getBytes()
 {
     return ptr->payload;
@@ -59,59 +86,54 @@ int DynamicType::length()
 
 ManagedString DynamicType::getString(int index)
 {
-    if (index < 0 || !(ptr->subtype & SUBTYPE_STRING))
-        return MICROBIT_INVALID_PARAMETER;
+    uint8_t *data = getPointerToIndex(index);
 
-    if (index > 0 && !(ptr->subtype & SUBTYPE_ARRAY))
+    if (data == NULL || !(*data & SUBTYPE_STRING))
         return ManagedString();
-
-    if (index == 0)
-        return ManagedString((char*)ptr->payload);
-
-    int strCount = 0;
-    int iterator = 0;
-
-    uint8_t* p = ptr->payload;
-
-    while (iterator < ptr->len)
-    {
-        if(*p == 0)
-            strCount++;
-
-        p++;
-        iterator++;
-
-        if (strCount == index)
-            return ManagedString((char*) ptr->payload + iterator);
-    }
-
-    return ManagedString();
+    
+    // move past subtype byte
+    data++;
+    
+    return ManagedString((char*)data);
 }
 
-int DynamicType::getNumber(int index)
+int DynamicType::getInteger(int index)
 {
-    if (index < 0 || !(ptr->subtype & SUBTYPE_NUMBER))
+    uint8_t *data = getPointerToIndex(index);
+
+    if (data == NULL || !(*data & SUBTYPE_INT))
         return MICROBIT_INVALID_PARAMETER;
-
-    if (index > 0 && !(ptr->subtype & SUBTYPE_ARRAY))
-        return MICROBIT_INVALID_PARAMETER;
-
-    if (index > (ptr->len / sizeof(int)))
-        return MICROBIT_INVALID_PARAMETER;
-
-    if (index == 0)
-        return ptr->payload[0];
-
-    int* p = (int*)ptr->payload;
-    return p[index];
+    
+    // move past subtype byte
+    data++;
+    
+    return (int)*data;
 }
 
-int DynamicType::appendString()
+float DynamicType::getFloat(int index)
+{
+    uint8_t *data = getPointerToIndex(index);
+
+    if (data == NULL || !(*data & SUBTYPE_FLOAT))
+        return MICROBIT_INVALID_PARAMETER;
+    
+    // move past subtype byte
+    data++;
+    
+    return (float)*data;
+}
+
+int DynamicType::appendString(ManagedString)
 {
     return MICROBIT_OK;
 }
 
-int DynamicType::appendNumber()
+int DynamicType::appendInteger(int i)
+{
+    return MICROBIT_OK;
+}
+
+int DynamicType::appendFloat(float f)
 {
     return MICROBIT_OK;
 }
