@@ -1,11 +1,11 @@
-#ifndef HUB_H
-#define HUB_H
+#ifndef BRIDGE_H
+#define BRIDGE_H
 
 #include "Radio.h"
 #include "MicroBitSerial.h"
 #include "MicroBitMessageBus.h"
 
-class Hub
+class Bridge
 {
     Radio& radio;
     MicroBitSerial& serial;
@@ -18,7 +18,7 @@ class Hub
 
     public:
 
-    Hub(Radio& r, MicroBitSerial& s, MicroBitMessageBus& b);
+    Bridge(Radio& r, MicroBitSerial& s, MicroBitMessageBus& b);
 };
 
 #endif

@@ -15,7 +15,7 @@ extern void log_string_priv(const char *);
 static uint32_t id_history[HISTORY_COUNT] = { 0 };
 static uint16_t historyIndexHead = 0;
 
-bool Hub::searchHistory(uint16_t app_id, uint16_t id)
+bool Bridge::searchHistory(uint16_t app_id, uint16_t id)
 {
     for (int idx = 0; idx < HISTORY_COUNT; idx++)
     {
@@ -26,13 +26,13 @@ bool Hub::searchHistory(uint16_t app_id, uint16_t id)
     return false;
 }
 
-void Hub::addToHistory(uint16_t app_id, uint16_t id)
+void Bridge::addToHistory(uint16_t app_id, uint16_t id)
 {
     id_history[historyIndexHead] = ((app_id << 16) | id);   
     historyIndexHead = (historyIndexHead + 1) % HISTORY_COUNT;
 }
 
-void Hub::onRadioPacket(MicroBitEvent e)
+void Bridge::onRadioPacket(MicroBitEvent e)
 {
     DataPacket* r = radio.rest.recvRaw(e.value);
 
@@ -73,7 +73,7 @@ void Hub::onRadioPacket(MicroBitEvent e)
     delete r;
 }
 
-void Hub::onSerialPacket(MicroBitEvent)
+void Bridge::onSerialPacket(MicroBitEvent)
 {
     DataPacket* packet = (DataPacket*) malloc(sizeof(DataPacket));
     uint8_t* packetPtr = (uint8_t*)packet;
@@ -113,7 +113,7 @@ void Hub::onSerialPacket(MicroBitEvent)
     serial.eventOn((char)SLIP_END);
 }
 
-Hub::Hub(Radio& r, MicroBitSerial& s, MicroBitMessageBus& b) : radio(r), serial(s)
+Bridge::Bridge(Radio& r, MicroBitSerial& s, MicroBitMessageBus& b) : radio(r), serial(s)
 {
     memset(id_history, 0, sizeof(uint32_t) * HISTORY_COUNT);
 
