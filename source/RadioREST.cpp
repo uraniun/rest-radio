@@ -19,16 +19,11 @@ DataPacket* RadioREST::removeFromQueue(DataPacket** queue, uint16_t id)
     DataPacket *p = *queue;
     DataPacket *previous = *queue;
 
-    log_string("start");
-    log_num(id);
-
+    __disable_irq();
     while (p != NULL)
     {
-        log_string("iter");
-        log_num(p->id);
         if (id == p->id)
         {
-            log_string("found");
             if (p == *queue)
                 *queue = p->next;
             else
@@ -40,6 +35,7 @@ DataPacket* RadioREST::removeFromQueue(DataPacket** queue, uint16_t id)
         previous = p;
         p = p->next;
     }
+    __enable_irq();
 
     return NULL;
 }
@@ -47,10 +43,9 @@ DataPacket* RadioREST::removeFromQueue(DataPacket** queue, uint16_t id)
 int RadioREST::addToQueue(DataPacket** queue, DataPacket* packet)
 {
     int queueDepth = 0;
-
-    // We add to the tail of the queue to preserve causal ordering.
     packet->next = NULL;
 
+    __disable_irq();
     if (*queue == NULL)
     {
         *queue = packet;
@@ -73,6 +68,7 @@ int RadioREST::addToQueue(DataPacket** queue, DataPacket* packet)
 
         p->next = packet;
     }
+    __enable_irq();
 
     return MICROBIT_OK;
 }
@@ -99,6 +95,7 @@ DataPacket* RadioREST::composePacket(uint8_t type, uint8_t* payload, uint8_t pay
     p->app_id = app_id;
     p->id = id;
     p->request_type = type;
+    p->status = DATA_PACKET_WAITING_FOR_SEND;
 
     uint32_t len = min(MAX_PAYLOAD_SIZE, payload_len);
 
@@ -128,7 +125,6 @@ DynamicType RadioREST::getRequest(ManagedString url, bool repeating)
 
     DataPacket *p = composePacket(REQUEST_TYPE_GET_REQUEST | ((repeating) ? REQUEST_TYPE_REPEATING : 0), urlBuf, bufLen, appId);
     uint32_t id = p->id;
-    sendDataPacket(p);
     addToQueue(&txQueue, p);
 
     fiber_wake_on_event(RADIO_REST_ID, id);
@@ -191,10 +187,6 @@ uint16_t RadioREST::postRequestAsync(ManagedString url, DynamicType& parameters)
     addToQueue(&txQueue, p);
     return id;
 }
-
-#define DATA_PACKET_WAITING_FOR_SEND        0x01
-#define DATA_PACKET_WAITING_FOR_ACK         0x02
-#define DATA_PACKET_ACK_RECEIVED            0x04
 
 void RadioREST::idleTick()
 {
@@ -280,19 +272,43 @@ void RadioREST::packetReceived()
         return;
     }
 
-    // if it's only an ACK, we can remove from our txQueue, and return.
     if (temp->request_type & REQUEST_TYPE_STATUS_ACK)
     {
-        log_string("REMOVING");
-        DataPacket *t = removeFromQueue(&txQueue, temp->id);
-        log_num((int)t);
-        if (t)
-            delete t;
+        DataPacket* p = txQueue;
+
+        while (p != NULL)
+        {
+            if (temp->id == p->id)
+                break;
+
+            p = p->next;
+        }
+
+        if (p)
+        {
+            p->status = DATA_PACKET_ACK_RECEIVED;
+            p->no_response_count = 0;
+            p->retry_count = 0;
+        }
+
         delete packet;
+        
         return;
     }
 
     log_string("AFTER");
+
+    // we have received a response, remove from the txQueue
+    DataPacket* toDelete = removeFromQueue(&txQueue, temp->id);
+
+    // we've already received this packet, or given up.
+    if (toDelete == NULL)
+    {
+        delete packet;
+        return;
+    }
+
+    delete toDelete;
 
     // add to our RX queue for app handling.
     DataPacket* p = new DataPacket();
@@ -306,10 +322,9 @@ void RadioREST::packetReceived()
 
     addToQueue(&rxQueue, p);
 
-    // send an ACK.
+    // send an ACK immediately, we don't add it to the txQueue
     DataPacket *ack = composePacket(REQUEST_TYPE_STATUS_ACK, NULL, 0, p->app_id, p->id);
     sendDataPacket(ack);
-    log_string("ACK");
 
     delete ack;
 
