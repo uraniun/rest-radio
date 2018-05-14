@@ -6,9 +6,32 @@
 #define SLIP_ESC_END            0xDC
 #define SLIP_ESC_ESC            0xDD
 
+#define HISTORY_COUNT           20
+#define APP_ID_MSK              0xFFFF0000
+#define PACKET_ID_MSK           0x0000FFFF
+
 extern void log_string_priv(const char *);
 
-// ack and drop
+static uint32_t id_history[HISTORY_COUNT] = { 0 };
+static uint16_t historyIndexHead = 0;
+
+bool Hub::searchHistory(uint16_t app_id, uint16_t id)
+{
+    for (int idx = 0; idx < HISTORY_COUNT; idx++)
+    {
+        if (((id_history[idx] & APP_ID_MSK) >> 16) == app_id && (id_history[idx] & PACKET_ID_MSK) == id)
+            return true;
+    }
+    
+    return false;
+}
+
+void Hub::addToHistory(uint16_t app_id, uint16_t id)
+{
+    id_history[historyIndexHead] = ((app_id << 16) | id);   
+    historyIndexHead = (historyIndexHead + 1) % HISTORY_COUNT;
+}
+
 void Hub::onRadioPacket(MicroBitEvent e)
 {
     DataPacket* r = radio.rest.recvRaw(e.value);
@@ -17,37 +40,41 @@ void Hub::onRadioPacket(MicroBitEvent e)
         return;
 
     uint8_t* packetPtr = (uint8_t *)r;
-
     uint16_t len = r->len;
 
-    for (uint16_t i = 0; i < len; i++)
+    bool seen = searchHistory(r->app_id, r->id);
+
+    if (!seen)
     {
-        if (packetPtr[i] == SLIP_ESC)
+        addToHistory(r->app_id, r->id);
+
+        for (uint16_t i = 0; i < len; i++)
         {
-            serial.putc(SLIP_ESC);
-            serial.putc(SLIP_ESC_ESC);
-            continue;
+            if (packetPtr[i] == SLIP_ESC)
+            {
+                serial.putc(SLIP_ESC);
+                serial.putc(SLIP_ESC_ESC);
+                continue;
+            }
+
+            if(packetPtr[i] == SLIP_END)
+            {
+                serial.putc(SLIP_ESC);
+                serial.putc(SLIP_ESC_END);
+                continue;
+            }
+
+            serial.putc(packetPtr[i]);
         }
 
-        if(packetPtr[i] == SLIP_END)
-        {
-            serial.putc(SLIP_ESC);
-            serial.putc(SLIP_ESC_END);
-            continue;
-        }
-
-        serial.putc(packetPtr[i]);
+        serial.putc(SLIP_END);
     }
-
-    serial.putc(SLIP_END);
 
     delete r;
 }
 
 void Hub::onSerialPacket(MicroBitEvent)
 {
-    log_string_priv("PACKET");
-
     DataPacket* packet = (DataPacket*) malloc(sizeof(DataPacket));
     uint8_t* packetPtr = (uint8_t*)packet;
 
@@ -88,6 +115,8 @@ void Hub::onSerialPacket(MicroBitEvent)
 
 Hub::Hub(Radio& r, MicroBitSerial& s, MicroBitMessageBus& b) : radio(r), serial(s)
 {
+    memset(id_history, 0, sizeof(uint32_t) * HISTORY_COUNT);
+
     b.listen(RADIO_REST_ID, MICROBIT_EVT_ANY, this, &Hub::onRadioPacket);
     b.listen(MICROBIT_ID_SERIAL, MICROBIT_SERIAL_EVT_DELIM_MATCH, this, &Hub::onSerialPacket);
 

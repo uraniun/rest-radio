@@ -121,6 +121,7 @@ DynamicType RadioREST::getRequest(ManagedString url, bool repeating)
     uint8_t bufLen = url.length() + 2;
     uint8_t* urlBuf = (uint8_t *)malloc(bufLen);
     urlBuf[0] |= SUBTYPE_STRING;
+
     memcpy(urlBuf + 1,url.toCharArray(), bufLen - 1);
 
     DataPacket *p = composePacket(REQUEST_TYPE_GET_REQUEST | ((repeating) ? REQUEST_TYPE_REPEATING : 0), urlBuf, bufLen, appId);
@@ -135,10 +136,10 @@ DynamicType RadioREST::getRequest(ManagedString url, bool repeating)
 // returns the message bus value to use
 uint16_t RadioREST::getRequestAsync(ManagedString url, bool repeating)
 {
-    // + 2 for null terminator and type byte
-    uint8_t bufLen = url.length() + 2;
+    uint8_t bufLen = url.length() + 2; // + 2 for null terminator and type byte
     uint8_t* urlBuf = (uint8_t *)malloc(bufLen);
     urlBuf[0] |= SUBTYPE_STRING;
+
     memcpy(urlBuf + 1,url.toCharArray(), bufLen - 1);
 
     DataPacket *p = composePacket(REQUEST_TYPE_GET_REQUEST | ((repeating) ? REQUEST_TYPE_REPEATING : 0), urlBuf, bufLen, appId);
@@ -162,9 +163,8 @@ DynamicType RadioREST::postRequest(ManagedString url, DynamicType& parameters)
 
     DataPacket *p = composePacket(REQUEST_TYPE_POST_REQUEST, urlBuf, bufLen, appId);
     uint32_t id = p->id;
-    sendDataPacket(p);
     addToQueue(&txQueue, p);
-    // should be wake on event?
+
     fiber_wake_on_event(RADIO_REST_ID, id);
     schedule();
     return recv(id);
@@ -177,13 +177,12 @@ uint16_t RadioREST::postRequestAsync(ManagedString url, DynamicType& parameters)
     uint16_t bufLen = strLen + 1 + parameters.length(); // + 1 for subtype byte
     uint8_t* urlBuf = (uint8_t *)malloc(bufLen);
     urlBuf[0] |= SUBTYPE_STRING;
-    memcpy(urlBuf + 1,url.toCharArray(), url.length() + 1);
 
+    memcpy(urlBuf + 1,url.toCharArray(), url.length() + 1);
     memcpy(urlBuf + 1 + strLen, parameters.getBytes(), parameters.length());
 
     DataPacket *p = composePacket(REQUEST_TYPE_POST_REQUEST, urlBuf, bufLen, appId);
     uint32_t id = p->id;
-    sendDataPacket(p);
     addToQueue(&txQueue, p);
     return id;
 }
@@ -204,6 +203,7 @@ void RadioREST::idleTick()
         // only transmit once every idle tick
         if (p->status & DATA_PACKET_WAITING_FOR_SEND && !transmitted)
         {
+            log_string("SENDING!!!!!");
             transmitted = true;
             sendDataPacket(p);
             p->status = DATA_PACKET_WAITING_FOR_ACK;
@@ -214,7 +214,7 @@ void RadioREST::idleTick()
         {
              p->no_response_count++;
 
-            if (p->no_response_count > REST_RADIO_NO_RESPONSE_THRESHOLD && !transmitted)
+            if (p->no_response_count > REST_RADIO_NO_ACK_THRESHOLD && !transmitted)
             {
                 p->retry_count++;
 
@@ -230,7 +230,7 @@ void RadioREST::idleTick()
         {
             p->no_response_count++;
 
-            if (p->no_response_count > REST_RADIO_NO_RESPONSE_THRESHOLD
+            if (p->no_response_count > REST_RADIO_NO_RESPONSE_THRESHOLD)
                 pop = true;
         }
 
@@ -241,6 +241,7 @@ void RadioREST::idleTick()
 
             t->request_type = REQUEST_TYPE_STATUS_ERROR;
 
+            // expect client code to check for errors...
             addToQueue(&rxQueue, t);
 
             MicroBitEvent(RADIO_REST_ID, p->id);
@@ -298,17 +299,11 @@ void RadioREST::packetReceived()
 
     log_string("AFTER");
 
-    // we have received a response, remove from the txQueue
+    // we have received a response, remove any matching packets from the txQueue
     DataPacket* toDelete = removeFromQueue(&txQueue, temp->id);
 
-    // we've already received this packet, or given up.
-    if (toDelete == NULL)
-    {
-        delete packet;
-        return;
-    }
-
-    delete toDelete;
+    if (toDelete)
+        delete toDelete;
 
     // add to our RX queue for app handling.
     DataPacket* p = new DataPacket();
@@ -343,7 +338,12 @@ DynamicType RadioREST::recv(uint16_t id)
     log_num(t->len);
     log_num(t->len - REST_HEADER_SIZE);
 
-    DynamicType dt(t->len - REST_HEADER_SIZE, t->payload);
+    DynamicType dt;
+
+    if (t->request_type == REQUEST_TYPE_STATUS_ERROR)
+        dt = DynamicType(7, (uint8_t*)"\01ERROR\0");
+    else
+        dt = DynamicType(t->len - REST_HEADER_SIZE, t->payload);
 
     delete t;
 
