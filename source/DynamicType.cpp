@@ -4,8 +4,11 @@
 extern void log_string(const char *);
 extern void log_num(int);
 
-void DynamicType::init(uint8_t len, uint8_t* payload)
+void DynamicType::init(uint8_t len, uint8_t* payload, bool resize)
 {
+    if (resize)
+        free(this->ptr);
+
     ptr = (SubTyped *) malloc(sizeof(SubTyped) + len);
     ptr->init();
 
@@ -123,17 +126,40 @@ float DynamicType::getFloat(int index)
     return (float)*data;
 }
 
-int DynamicType::appendString(ManagedString)
+int DynamicType::grow(uint8_t size, uint8_t subtype, uint8_t* data)
 {
+    int len = length();
+    int newSize = len + size + 1;
+
+    uint8_t *buf = (uint8_t *)malloc(newSize); // include subtype byte
+
+    if (buf == NULL)
+        return MICROBIT_NO_RESOURCES;
+
+    memcpy(buf, getBytes(), len);
+    
+    // set data type
+    buf[len] = subtype;
+
+    // append the new string
+    memcpy(buf+ len + 1, data, size);
+
+    this->init(newSize, buf, true);
+
     return MICROBIT_OK;
+}
+
+int DynamicType::appendString(ManagedString s)
+{
+    return grow(s.length() + 1, SUBTYPE_STRING, (uint8_t *)s.toCharArray());
 }
 
 int DynamicType::appendInteger(int i)
 {
-    return MICROBIT_OK;
+    return grow(sizeof(int), SUBTYPE_INT, (uint8_t *)&i);
 }
 
 int DynamicType::appendFloat(float f)
 {
-    return MICROBIT_OK;
+    return grow(sizeof(float), SUBTYPE_FLOAT, (uint8_t *)&f);
 }

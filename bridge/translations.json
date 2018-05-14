@@ -9,15 +9,9 @@
             "microbitQueryString":"/%location%/%endpoint%/%unit?%",
             "endpoint":{
                 "temperature":{
-                    "parameters":[
-                        {
-                            "type":"string",
-                            "name":"unit"
-                        }
-                    ],
                     "returns":[
                         {
-                            "return_type":"string",
+                            "type":"string",
                             "name":"temp"
                         }
                     ],
@@ -43,8 +37,8 @@
                 "forecastNow":{
                     "returns":[
                         {
-                        "type":"string",
-                        "name":"high"
+                            "type":"string",
+                            "name":"high"
                         },
                         {
                             "type":"string",
@@ -52,7 +46,7 @@
                         },
                         {
                             "type":"string",
-                            "name":"test"
+                            "name":"text"
                         }
                     ],
                     "jsonPath":"query.results.channel.item.forecast[0]"
@@ -60,8 +54,8 @@
                 "forecastTomorrow":{
                     "returns":[
                         {
-                        "type":"string",
-                        "name":"high"
+                            "type":"string",
+                            "name":"high"
                         },
                         {
                             "type":"string",
@@ -69,28 +63,52 @@
                         },
                         {
                             "type":"string",
-                            "name":"test"
+                            "name":"text"
                         }
                     ],
                     "jsonPath":"query.results.channel.item.forecast[1]"
                 }
             }
         },
-        "POST" : 
-        {
-            "baseURL":"http://localhost:8000/api/rooms/%room%/",
+        "POST" : {
+            "baseURL":"http://localhost:8000/api/rooms/%room%",
             "microbitQueryString":"/%room%/%endpoint%/",
+            "queryObject":{
+                "temperature":"%temperature?=%",
+                "light_level":"%light_level?=%",
+                "humidity":"%humidity?=%"
+            },
+            "compulsory_fields":[
+                "endpoint",
+                "room"
+            ],
             "endpoint":{
                 "temperature":{
-                    "queryPayload":[
+                    "parameters":[
                         {
                             "name":"temperature",
                             "type":"int"
                         }
                     ]
                 },
+                "lightlevel":{
+                    "parameters":[
+                        {
+                            "name":"light_level",
+                            "type":"int"
+                        }
+                    ]
+                },
+                "humidity":{
+                    "parameters":[
+                        {
+                            "name":"humidity",
+                            "type":"int"
+                        }
+                    ]
+                },
                 "none":{
-                    "queryPayload":[
+                    "parameters":[
                         {
                             "name":"temperature",
                             "type":"int"

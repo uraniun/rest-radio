@@ -55,12 +55,11 @@ class RadioPacket:
 
         subtype, remainder = struct.unpack_from('b',payload[0])[0], payload[1:]
 
-        print str(subtype)
-
         data = None
         offset = 0
 
         if subtype & RadioPacket.SUBTYPE_STRING:
+
             data = ""
             for p in remainder:
                 if p == '\0':
@@ -68,12 +67,16 @@ class RadioPacket:
                 data += p
 
             offset = len(data) + 1
-        elif subtype & RadioPacket.SUBTYPE_INTEGER:
-           data = struct.unpack_from("i",remainder)
+            print "STRING ", str(data)
+
+        elif subtype & RadioPacket.SUBTYPE_INT:
+           data = struct.unpack_from("<i",remainder)[0]
+           print "INT ", str(data)
            offset = 4
 
         elif subtype & RadioPacket.SUBTYPE_FLOAT:
-           data = struct.unpack_from("f",remainder)
+           data = struct.unpack_from("<f",remainder)[0]
+           print "FLOAT ", str(data)
            offset = 4
 
         self.data += [data]
@@ -97,7 +100,7 @@ class RadioPacket:
                 payload += struct.pack("b" + str(len(d) + 1) + "s", RadioPacket.SUBTYPE_STRING,(d + "\0").encode('utf8'))
 
             if isinstance(d,int):
-                payload += struct.pack("bi",RadioPacket.SUBTYPE_INTEGER, d)
+                payload += struct.pack("bi",RadioPacket.SUBTYPE_INT, d)
             
             if isinstance(d,float):
                 payload += struct.pack("bf", RadioPacket.SUBTYPE_FLOAT, d)

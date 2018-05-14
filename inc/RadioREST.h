@@ -24,6 +24,10 @@
 #define REQUEST_TYPE_STATUS_OK              0x40
 #define REQUEST_TYPE_REPEATING              0x80
 
+#define DATA_PACKET_WAITING_FOR_SEND        0x01
+#define DATA_PACKET_WAITING_FOR_ACK         0x02
+#define DATA_PACKET_ACK_RECEIVED            0x04
+
 struct DataPacket
 {
     uint16_t id;
@@ -61,6 +65,10 @@ class RadioREST : public MicroBitComponent
 
     uint16_t getRequestAsync(ManagedString url, bool repeating = false);
 
+    DynamicType postRequest(ManagedString url, DynamicType& parameters);
+
+    uint16_t postRequestAsync(ManagedString url, DynamicType& parameters);
+
     void packetReceived();
 
     virtual void idleTick();
@@ -68,12 +76,6 @@ class RadioREST : public MicroBitComponent
     DynamicType recv(uint16_t id);
 
     DataPacket* recvRaw(uint16_t id);
-
-    // ManagedBuffer putRequest(ManagedString url);
-
-    // ManagedBuffer postRequest(ManagedString url);
-
-    // ManagedBuffer deleteRequest(ManagedString url);
 };
 
 

@@ -130,8 +130,9 @@ DynamicType RadioREST::getRequest(ManagedString url, bool repeating)
     uint32_t id = p->id;
     sendDataPacket(p);
     addToQueue(&txQueue, p);
-    // should be wake on event?
-    fiber_wait_for_event(RADIO_REST_ID, id);
+
+    fiber_wake_on_event(RADIO_REST_ID, id);
+    schedule();
     return recv(id);
 }
 
@@ -146,11 +147,54 @@ uint16_t RadioREST::getRequestAsync(ManagedString url, bool repeating)
 
     DataPacket *p = composePacket(REQUEST_TYPE_GET_REQUEST | ((repeating) ? REQUEST_TYPE_REPEATING : 0), urlBuf, bufLen, appId);
     uint32_t id = p->id;
+
     sendDataPacket(p);
     addToQueue(&txQueue, p);
     return id;
 }
 
+DynamicType RadioREST::postRequest(ManagedString url, DynamicType& parameters)
+{
+    uint16_t strLen = url.length() + 1; // for null terminator
+
+    uint16_t bufLen = strLen + 1 + parameters.length(); // + 1 for subtype byte
+    uint8_t* urlBuf = (uint8_t *)malloc(bufLen);
+    urlBuf[0] = SUBTYPE_STRING;
+
+    memcpy(urlBuf + 1,url.toCharArray(), strLen);
+    memcpy(urlBuf + 1 + strLen, parameters.getBytes(), parameters.length());
+
+    DataPacket *p = composePacket(REQUEST_TYPE_POST_REQUEST, urlBuf, bufLen, appId);
+    uint32_t id = p->id;
+    sendDataPacket(p);
+    addToQueue(&txQueue, p);
+    // should be wake on event?
+    fiber_wake_on_event(RADIO_REST_ID, id);
+    schedule();
+    return recv(id);
+}
+
+uint16_t RadioREST::postRequestAsync(ManagedString url, DynamicType& parameters)
+{
+    uint16_t strLen = url.length() + 1; // for null terminator
+
+    uint16_t bufLen = strLen + 1 + parameters.length(); // + 1 for subtype byte
+    uint8_t* urlBuf = (uint8_t *)malloc(bufLen);
+    urlBuf[0] |= SUBTYPE_STRING;
+    memcpy(urlBuf + 1,url.toCharArray(), url.length() + 1);
+
+    memcpy(urlBuf + 1 + strLen, parameters.getBytes(), parameters.length());
+
+    DataPacket *p = composePacket(REQUEST_TYPE_POST_REQUEST, urlBuf, bufLen, appId);
+    uint32_t id = p->id;
+    sendDataPacket(p);
+    addToQueue(&txQueue, p);
+    return id;
+}
+
+#define DATA_PACKET_WAITING_FOR_SEND        0x01
+#define DATA_PACKET_WAITING_FOR_ACK         0x02
+#define DATA_PACKET_ACK_RECEIVED            0x04
 
 void RadioREST::idleTick()
 {
@@ -158,30 +202,56 @@ void RadioREST::idleTick()
         return;
 
     // walk the txqueue and check to see if any have exceeded our retransmit time
-    bool retransmitted = false;
+    bool transmitted = false;
+    bool pop = false;
 
     DataPacket* p = txQueue;
 
     while(p != NULL)
     {
-        p->no_response_count++;
-
-        if (p->no_response_count > REST_RADIO_NO_RESPONSE_THRESHOLD && !retransmitted)
+        // only transmit once every idle tick
+        if (p->status & DATA_PACKET_WAITING_FOR_SEND && !transmitted)
         {
-            p->retry_count++;
-
-            if (p->retry_count > REST_RADIO_RETRY_THRESHOLD)
-            {
-                MicroBitEvent(RADIO_REST_ID, p->id);
-                DataPacket *t = removeFromQueue(&txQueue, p->id);
-
-                if (t)
-                    delete t;
-            }
-
+            transmitted = true;
             sendDataPacket(p);
+            p->status = DATA_PACKET_WAITING_FOR_ACK;
             p->no_response_count = 0;
-            retransmitted = true;
+            p->retry_count = 0;
+        }
+        else if (p->status & DATA_PACKET_WAITING_FOR_ACK)
+        {
+             p->no_response_count++;
+
+            if (p->no_response_count > REST_RADIO_NO_RESPONSE_THRESHOLD && !transmitted)
+            {
+                p->retry_count++;
+
+                if (p->retry_count > REST_RADIO_RETRY_THRESHOLD)
+                    pop = true;
+
+                sendDataPacket(p);
+                p->no_response_count = 0;
+                transmitted = true;
+            }
+        }
+        else if (p->status & DATA_PACKET_ACK_RECEIVED)
+        {
+            p->no_response_count++;
+
+            if (p->no_response_count > REST_RADIO_NO_RESPONSE_THRESHOLD
+                pop = true;
+        }
+
+        if (pop)
+        {
+            pop = false;
+            DataPacket *t = removeFromQueue(&txQueue, p->id);
+
+            t->request_type = REQUEST_TYPE_STATUS_ERROR;
+
+            addToQueue(&rxQueue, t);
+
+            MicroBitEvent(RADIO_REST_ID, p->id);
         }
 
         p = p->next;

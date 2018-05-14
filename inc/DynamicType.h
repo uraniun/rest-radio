@@ -19,9 +19,11 @@ class DynamicType
 {
     SubTyped      *ptr;
 
-    void init(uint8_t len, uint8_t* payload);
+    void init(uint8_t len, uint8_t* payload, bool resize = false);
 
     uint8_t* getPointerToIndex(int index);
+
+    int grow(uint8_t size, uint8_t subtype, uint8_t* data);
 
     public:
 
@@ -43,11 +45,11 @@ class DynamicType
 
     float getFloat(int index = 0);
 
-    int DynamicType::appendString(ManagedString);
+    int appendString(ManagedString);
 
-    int DynamicType::appendInteger(int i);
-    
-    int DynamicType::appendFloat(float f);
+    int appendInteger(int i);
+
+    int appendFloat(float f);
 
     ~DynamicType();
 };
