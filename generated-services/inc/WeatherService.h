@@ -4,11 +4,6 @@
 #include "Radio.h"
 #include "MicroBitComponent.h"
 
-
-//% color=#f44242 icon="\u26C8"
-namespace weather {
-
-
 struct WeatherServiceForecastNow {
     int high;
     int low;
@@ -52,12 +47,5 @@ class WeatherService : public MicroBitComponent
 
     
 };
-
-
-}
-
-
-using namespace weather;
-
 
 #endif
