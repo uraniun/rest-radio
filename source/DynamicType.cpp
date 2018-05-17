@@ -21,17 +21,20 @@ void DynamicType::init(uint8_t len, uint8_t* payload, bool resize)
 
 DynamicType::DynamicType()
 {
+    status = DYNAMIC_TYPE_STATUS_NOT_CONFIGURED;
     this->init(0, NULL);
 }
 
-DynamicType::DynamicType(uint8_t len, uint8_t* payload)
+DynamicType::DynamicType(uint8_t len, uint8_t* payload, uint8_t status)
 {
+    status = (status > 0) ? DYNAMIC_TYPE_STATUS_ERROR : MICROBIT_OK;
     this->init(len, payload);
 }
 
 DynamicType::DynamicType(const DynamicType &buffer)
 {
     ptr = buffer.ptr;
+    status = buffer.status;
     ptr->incr();
 }
 
@@ -85,6 +88,14 @@ uint8_t* DynamicType::getBytes()
 int DynamicType::length()
 {
     return ptr->len;
+}
+
+int DynamicType::getStatus()
+{
+    if (status & (DYNAMIC_TYPE_STATUS_NOT_CONFIGURED) || status == 0)
+        return MICROBIT_OK;
+    
+    return MICROBIT_NO_DATA;
 }
 
 ManagedString DynamicType::getString(int index)

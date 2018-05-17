@@ -8,6 +8,7 @@
   },
   "targetDependencies": {},
   "extraIncludes":[
-    "inc"
+    "inc",
+    "generated-services/inc"
   ]
 }

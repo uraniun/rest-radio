@@ -341,9 +341,9 @@ DynamicType RadioREST::recv(uint16_t id)
     DynamicType dt;
 
     if (t->request_type == REQUEST_TYPE_STATUS_ERROR)
-        dt = DynamicType(7, (uint8_t*)"\01ERROR\0");
+        dt = DynamicType(7, (uint8_t*)"\01ERROR\0", DYNAMIC_TYPE_STATUS_ERROR);
     else
-        dt = DynamicType(t->len - REST_HEADER_SIZE, t->payload);
+        dt = DynamicType(t->len - REST_HEADER_SIZE, t->payload, 0);
 
     delete t;
 

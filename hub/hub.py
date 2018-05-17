@@ -25,7 +25,7 @@ def error(originalPacket, serial):
     serial.write(returnPacket.marshall(False))
 
 
-s = Serial(port= "/dev/cu.usbmodem23",baudrate=115200)
+s = Serial(port= "/dev/cu.usbmodem25",baudrate=115200)
 
 translations = open("./translations.json")
 translations = json.load(translations)

@@ -1,12 +1,19 @@
 {
     "weather":{
         "GET" : {
+            "apiPrefix":"get",
             "baseURL":"http://query.yahooapis.com/v1/public/yql",
             "queryObject":{
                 "q":"select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='%location%') and u='%unit?=c%'",
                 "format":"json"
             },
             "microbitQueryString":"/%location%/%endpoint%/%unit?%",
+            "compulsoryParameters":[
+                {
+                    "name":"location",
+                    "type":"string"
+                }
+            ],
             "endpoint":{
                 "temperature":{
                     "returns":[
@@ -37,18 +44,20 @@
                 "forecastNow":{
                     "returns":[
                         {
-                            "type":"string",
+                            "type":"int",
                             "name":"high"
                         },
                         {
-                            "type":"string",
+                            "type":"int",
                             "name":"low"
                         },
                         {
                             "type":"string",
-                            "name":"text"
+                            "name":"text",
+                            "alt":"description"
                         }
                     ],
+                    "cacheMs":"15000",
                     "jsonPath":"query.results.channel.item.forecast[0]"
                 },
                 "forecastTomorrow":{
@@ -63,7 +72,8 @@
                         },
                         {
                             "type":"string",
-                            "name":"text"
+                            "name":"text",
+                            "alt":"description"
                         }
                     ],
                     "jsonPath":"query.results.channel.item.forecast[1]"
@@ -71,6 +81,7 @@
             }
         },
         "POST" : {
+            "apiPrefix":"setRoom",
             "baseURL":"http://localhost:8000/api/rooms/%room%",
             "microbitQueryString":"/%room%/%endpoint%/",
             "queryObject":{
@@ -78,9 +89,11 @@
                 "light_level":"%light_level?=%",
                 "humidity":"%humidity?=%"
             },
-            "compulsory_fields":[
-                "endpoint",
-                "room"
+            "compulsoryParameters":[
+                {
+                    "name":"room",
+                    "type":"string"
+                }
             ],
             "endpoint":{
                 "temperature":{

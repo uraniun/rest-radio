@@ -1,0 +1,25 @@
+
+scoped to the school:
+
+
+
+set "window0" in "D18" to "open"
+
+
+on "window0" in "D18" changed
+	get changed
+
+---------------------------------------------
+
+
+on P0 pressed:
+	window "asdasd" in room "D18" closed
+	
+
+on window "asdasd" in room "D18" changed
+	//do something
+
+---------------------------------------------
+
+on button a "pressed"
+	show string [energy usage of "D18"]

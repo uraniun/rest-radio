@@ -1,4 +1,4 @@
-#include "Hub.h"
+#include "Bridge.h"
 #include "EventModel.h"
 
 #define SLIP_END                0xC0
@@ -35,6 +35,7 @@ void Bridge::addToHistory(uint16_t app_id, uint16_t id)
 void Bridge::onRadioPacket(MicroBitEvent e)
 {
     DataPacket* r = radio.rest.recvRaw(e.value);
+    log_string_priv("RAdio_PACKET");
 
     if (r == NULL)
         return;
@@ -46,6 +47,7 @@ void Bridge::onRadioPacket(MicroBitEvent e)
 
     if (!seen)
     {
+        log_string_priv("not_seen");
         addToHistory(r->app_id, r->id);
 
         for (uint16_t i = 0; i < len; i++)
@@ -117,8 +119,8 @@ Bridge::Bridge(Radio& r, MicroBitSerial& s, MicroBitMessageBus& b) : radio(r), s
 {
     memset(id_history, 0, sizeof(uint32_t) * HISTORY_COUNT);
 
-    b.listen(RADIO_REST_ID, MICROBIT_EVT_ANY, this, &Hub::onRadioPacket);
-    b.listen(MICROBIT_ID_SERIAL, MICROBIT_SERIAL_EVT_DELIM_MATCH, this, &Hub::onSerialPacket);
+    b.listen(RADIO_REST_ID, MICROBIT_EVT_ANY, this, &Bridge::onRadioPacket);
+    b.listen(MICROBIT_ID_SERIAL, MICROBIT_SERIAL_EVT_DELIM_MATCH, this, &Bridge::onSerialPacket);
 
     s.setRxBufferSize(255);
 

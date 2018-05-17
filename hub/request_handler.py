@@ -157,7 +157,9 @@ class RequestHandler:
         # every rest request should have the URL as the first item.
         url = self.rPacket.get(0)
 
-        pieces = url.split("/")
+        pieces = [x for x in url.split("/") if x is not '']
+
+        print pieces
 
         part, rest = pieces[0],pieces[1:]
 
