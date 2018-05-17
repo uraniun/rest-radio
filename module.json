@@ -4,7 +4,7 @@
   "description": "Samsung radio protocol module",
   "license": "MIT",
   "dependencies": {
-    "microbit-dal": "lancaster-university/microbit-dal"
+    "microbit-dal": "lancaster-university/microbit-dal#no-radio"
   },
   "targetDependencies": {},
   "extraIncludes":[
