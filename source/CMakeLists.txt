@@ -16,11 +16,9 @@ MACRO(RECURSIVE_FIND_FILE return_list dir pattern)
 ENDMACRO()
 
 RECURSIVE_FIND_FILE(SOURCE_FILES "." "*.c??")
-RECURSIVE_FIND_FILE(SERVICES "../generated-services" "*.c??")
 
 set(YOTTA_AUTO_SAMSUNG-RADIO_CPP_FILES
     ${SOURCE_FILES}
-    ${SERVICES}
 )
 
 add_library(samsung-radio
