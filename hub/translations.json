@@ -1,138 +1,60 @@
 {
-    "weather":{
-        "GET" : {
-            "apiPrefix":"get",
-            "baseURL":"http://query.yahooapis.com/v1/public/yql",
-            "queryObject":{
-                "q":"select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='%location%') and u='%unit?=c%'",
-                "format":"json"
-            },
-            "microbitQueryString":"/%location%/%endpoint%/%unit?%",
-            "compulsoryParameters":[
-                {
-                    "name":"location",
-                    "type":"string"
-                }
-            ],
+    "share":{
+        "POLL" : {
+            "hub_only" : true,
+            "baseURL":"http://localhost:8000/api/share/%endpoint%/%school_id?=%",
             "endpoint":{
-                "temperature":{
-                    "returns":[
+                "everyone":{},
+                "school":{
+                    "parameters":[
                         {
-                            "type":"string",
-                            "name":"temp"
+                            "name":"school_id",
+                            "type":"string"
                         }
                     ],
-                    "jsonPath":"query.results.channel.item.condition"
-                },
-                "wind":{
-                    "returns":[
-                        {
-                            "type":"string",
-                            "name":"chill"
-                        },
-                        {
-                            "type":"string",
-                            "name":"direction"
-                        },
-                        {
-                            "type":"string",
-                            "name":"speed"
-                        }
-                    ],
-                    "jsonPath":"query.results.channel.wind"
-                },
-                "forecastNow":{
                     "returns":[
                         {
                             "type":"int",
-                            "name":"high"
+                            "name":"timestamp"
                         },
                         {
-                            "type":"int",
-                            "name":"low"
-                        },
-                        {
-                            "type":"string",
-                            "name":"text",
-                            "alt":"description"
+                            "type":["string","int","float"],
+                            "name":"value"
                         }
-                    ],
-                    "cacheMs":"15000",
-                    "jsonPath":"query.results.channel.item.forecast[0]"
-                },
-                "forecastTomorrow":{
-                    "returns":[
-                        {
-                            "type":"string",
-                            "name":"high"
-                        },
-                        {
-                            "type":"string",
-                            "name":"low"
-                        },
-                        {
-                            "type":"string",
-                            "name":"text",
-                            "alt":"description"
-                        }
-                    ],
-                    "jsonPath":"query.results.channel.item.forecast[1]"
+                    ]
                 }
             }
         },
         "POST" : {
-            "apiPrefix":"setRoom",
-            "baseURL":"http://localhost:8000/api/rooms/%room%",
-            "microbitQueryString":"/%room%/%endpoint%/",
+            "apiPrefix":"set",
+            "baseURL":"http://localhost:8000/api/share/",
+            "microbitQueryString":"/%endpoint%/%id?%",
             "queryObject":{
-                "temperature":"%temperature?=%",
-                "light_level":"%light_level?=%",
-                "humidity":"%humidity?=%"
+                "variable_name":"%variable_name%",
+                "value":"%value%"
             },
-            "compulsoryParameters":[
-                {
-                    "name":"room",
-                    "type":"string"
-                }
-            ],
             "endpoint":{
-                "temperature":{
+                "everyone":{
                     "parameters":[
                         {
-                            "name":"temperature",
-                            "type":"int"
-                        }
-                    ]
-                },
-                "lightlevel":{
-                    "parameters":[
-                        {
-                            "name":"light_level",
-                            "type":"int"
-                        }
-                    ]
-                },
-                "humidity":{
-                    "parameters":[
-                        {
-                            "name":"humidity",
-                            "type":"int"
-                        }
-                    ]
-                },
-                "none":{
-                    "parameters":[
-                        {
-                            "name":"temperature",
-                            "type":"int"
+                            "name":"variable_name",
+                            "type":"string"
                         },
                         {
-                            "name":"light_level",
-                            "type":"int"
+                            "name":"value",
+                            "type":["string","int","float"]
+                        }
+                    ]
+                },
+                "school":{
+                    "parameters":[
+                        {
+                            "name":"variable_name",
+                            "type":"string"
                         },
                         {
-                            "name":"humidity",
-                            "type":"int"
+                            "name":"value",
+                            "type":["string","int","float"]
                         }
                     ]
                 }

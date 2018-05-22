@@ -1,6 +1,8 @@
 from radio_packet import RadioPacket
 import re, requests,urllib,json
 
+from utils import hub_regexp
+
 class RequestHandler:
 
     def __init__(self, rPacket, translations):
@@ -65,7 +67,7 @@ class RequestHandler:
                 continue
 
             part, rest = rest[0], rest[1:]
-        
+
         return out
 
     def processRESTRequest(self, url, request_type, translation):
@@ -86,7 +88,7 @@ class RequestHandler:
         # if there is no matching endpoint return error packet
         if out["endpoint"] not in operation["endpoint"].keys():
             raise self.rPacket.marshall(False)
-        
+
         endpoint = operation["endpoint"][out["endpoint"]]
 
         # extract further objects from the packet against the keys specified in the parameters part of the translation, and join with `out`
@@ -97,10 +99,10 @@ class RequestHandler:
 
         # for each query field in the queryobject extract the %variable_name% pattern.
         for param in queryObject:
-            regexStrings[param] = re.findall(r"(%([a-zA-z]*)(?:\?=)?([a-z]*)%)",queryObject[param])
+            regexStrings[param] = re.findall(hub_regexp, queryObject[param])
 
         # to simplify code, lets lump the base url (that may require regex'ing) into the queryobj
-        regexStrings["baseURL"] = re.findall(r"(%([a-zA-z]*)(?:\?=)?([a-z]*)%)",baseURL)
+        regexStrings["baseURL"] = re.findall(hub_regexp, baseURL)
         queryObject["baseURL"] = baseURL
 
         # foreach regexp result from our regexps, map values from the packet into the query object
@@ -148,7 +150,7 @@ class RequestHandler:
             for ret in returnVariables:
                 print jsonObj[ret["name"]]
                 self.returnPacket.append(jsonObj[ret["name"]])
-        
+
 
         return self.returnPacket.marshall(True)
 
@@ -180,4 +182,3 @@ class RequestHandler:
         if self.rPacket.request_type & (RadioPacket.REQUEST_TYPE_GET_REQUEST | RadioPacket.REQUEST_TYPE_POST_REQUEST | RadioPacket.REQUEST_TYPE_DELETE_REQUEST | RadioPacket.REQUEST_TYPE_PUT_REQUEST) :
             return self.handleRESTRequest()
 
-        

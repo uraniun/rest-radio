@@ -4,8 +4,6 @@
 #include "Radio.h"
 #include "MicroBitComponent.h"
 
-%SERVICE_NAMESPACE_START%
-
 %SERVICE_STRUCTS%
 
 class %SERVICE_NAME_PASCAL% : public MicroBitComponent
@@ -22,9 +20,5 @@ class %SERVICE_NAME_PASCAL% : public MicroBitComponent
 
     %SERVICE_MEMBER_FUNCTION_DEFINITIONS%
 };
-
-%SERVICE_NAMESPACE_END%
-
-%SERVICE_NAMESPACE_USING%
 
 #endif

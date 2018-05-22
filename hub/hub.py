@@ -1,114 +1,44 @@
-from serial import Serial
 import sys, struct, json, re
-from weather import Weather, Unit
 from radio_packet import RadioPacket
 from request_handler import RequestHandler
+from endpoint_poller import EndpointPoller
+from serial_handler import SerialHandler
 
+from time import sleep
 
-# constants for the serial line internet protocol.
-SLIP_END = chr(0xC0)
-SLIP_ESC = chr(0xDB)
-SLIP_ESC_END = chr(0xDC)
-SLIP_ESC_ESC = chr(0xDD)
+import serial.tools.list_ports
+ports = list(serial.tools.list_ports.comports())
+for p in ports:
+    print p
 
-# struct DataPacket
-# {
-#     uint16_t id;
-#     uint16_t app_id;
-#     uint8_t request_type;
-#     uint8_t subtype; // lower four bits are typing, upper four bits are data size
-#     uint8_t payload[MAX_PAYLOAD_SIZE];
-# }
-
-def error(originalPacket, serial):
-    returnPacket = RadioPacket(originalPacket)
-    serial.write(returnPacket.marshall(False))
-
-
-s = Serial(port= "/dev/cu.usbmodem25",baudrate=115200)
+hub_variables = {
+    "school_id":"123456789"
+}
 
 translations = open("./translations.json")
 translations = json.load(translations)
 
+ep_poller = EndpointPoller(translations, hub_variables)
+while True:
+
+    poll_results = ep_poller.poll()
+    print poll_results
+    sleep(1)
+
+serial_handler = SerialHandler("/dev/cu.usbmodem1412")
+
+# while true swap between polling EPs and receiving / sending.
 while(True):
+    if serial_handler.buffered() > 0:
+        rPacket = RadioPacket(serial_handler.read_packet())
+        requestHandler = RequestHandler(rPacket,translations)
+        bytes = requestHandler.handleRequest()
+        serial_handler.write_packet(bytes)
+    else:
+        poll_results = ep_poller.poll()
 
-    c = None
-    packet = []
-    debug = False
-    while True:
-        c = s.read()
-
-        if c == '\\':
-            debug = not debug
-            print "debug mode toggled", str(debug)
-            continue
-
-        if not debug:
-
-            if c == SLIP_END:
-                print "SLIP_END"
-                break
-
-            if c == SLIP_ESC:
-                next = s.read()
-
-                if next == SLIP_ESC_END:
-                    packet += [SLIP_END]
-
-                elif next == SLIP_ESC_ESC:
-                    packet += [SLIP_ESC]
-
-                else:
-                    packet += [c]
-                    packet += [next]
-
-                continue
-
-            print("%c [%d]" % (c, ord(c)))
-            packet += [c]
-        else:
-            print("DEBUG: %c [%d]" % (c, ord(c)))
-
-    packet = ''.join(packet)
-
-    print "joined: %s len %d" % (packet,len(packet))
-    print packet
-
-    rPacket = RadioPacket(packet)
-
-    requestHandler = RequestHandler(rPacket,translations)
-
-    bytes = requestHandler.handleRequest()
-
-    finalBytes = []
-
-    for b in bytes:
-        if b == SLIP_ESC:
-            finalBytes += SLIP_ESC
-            finalBytes += SLIP_ESC_ESC
-            continue
-
-        if b == SLIP_END:
-            finalBytes += SLIP_ESC
-            finalBytes +=SLIP_ESC_END
-            continue
-
-        finalBytes += b
-    
-    finalBytes += SLIP_END
-
-    for p in finalBytes:
-        print("%c [%d]" % (p, ord(p)))
-
-    s.write(''.join(finalBytes))
-
-    # weather = Weather(unit=Unit.CELSIUS)
-    # location = weather.lookup_by_location(loc)
-    # condition = location.condition
-
-    # print condition.text
-
-    # packed = struct.pack("<IIIs",app_id,namespace_id,len(condition.text),str(condition.text))
-    # s.write(packed)
+        #not correct, but desired semantics.
+        for c in poll_results:
+            serial_handler.write_packet(c)
 
 

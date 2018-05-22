@@ -1,5 +1,7 @@
 import json, os, re
 
+import ./utils
+
 type_mapping = {
     "string":"ManagedString",
     "int": "int",
@@ -7,12 +9,6 @@ type_mapping = {
 }
 
 tab = "    "
-
-def safe_extract(key_name, obj, ret):
-    if key_name not in obj.keys():
-        return ret
-
-    return obj[key_name]
 
 def generate_return_type(returns,service_name, ep_name):
 
@@ -27,7 +23,7 @@ def generate_return_type(returns,service_name, ep_name):
         struct += "};\r\n"
 
         return {"type": service_name + ep_name, "struct": struct}
-    
+
     if len(returns) == 0:
         return {"type":"int","struct":""}
 
@@ -97,7 +93,7 @@ def generate_function_body(parameters, microbit_query, endpoint, return_type, re
         # generate packing of data
         for st in standard_param:
             param_type = st["type"]
-            
+
             if param_type == "string":
                 body += tab + 't.appendString('+st["name"]+");\r\n"
             elif param_type == "int":
@@ -107,7 +103,7 @@ def generate_function_body(parameters, microbit_query, endpoint, return_type, re
 
     #perform request
     if request_type == "GET":
-        body += tab + "DynamicType res = radio.rest.getRequest(\"" + microbit_query +"\");\r\n"    
+        body += tab + "DynamicType res = radio.rest.getRequest(\"" + microbit_query +"\");\r\n"
     if request_type == "POST":
         body += tab + "DynamicType res = radio.rest.postRequest(\"" + microbit_query +"\", t);\r\n"
 
@@ -154,17 +150,22 @@ def generate_function_body(parameters, microbit_query, endpoint, return_type, re
     return body
 
 def generate_function_definition(return_type, service_key_name, service_name, ep_name, parameters, microbit_query, returns, request_type, api_prefix):
-    
+
     out = {}
 
-    api_name = api_prefix + ep_name[0].upper() + ep_name[1:] 
+    api_name = api_prefix + ep_name[0].upper() + ep_name[1:]
 
     h_definition = return_type["type"] + " " + api_name + "("
 
-    cpp_definition = return_type["type"] + " " + service_name+"::" + api_name + "(" 
+    cpp_definition = return_type["type"] + " " + service_name+"::" + api_name + "("
 
-    param_list = ', '.join([type_mapping[p["type"]] + " " + p["name"] for p in parameters])
-    
+    try:
+        param_list = ', '.join([type_mapping[p["type"]] + " " + p["name"] for p in parameters])
+    except Exception as e:
+        print "Invalid type detected, valid types are:" + str(type_mapping)
+        raise e
+
+
     h_definition += param_list
     cpp_definition += param_list
 
@@ -174,7 +175,7 @@ def generate_function_definition(return_type, service_key_name, service_name, ep
     out["hpp"] = h_definition +";\r\n"
 
     cpp_definition += " {\r\n"
-    
+
     cpp_definition += generate_function_body(parameters, "/" + service_key_name + microbit_query, ep_name, return_type, returns, request_type)
 
     cpp_definition += "}\r\n"
@@ -185,7 +186,7 @@ def generate_function_definition(return_type, service_key_name, service_name, ep
 
 def parse_service(service, service_key_name, service_name, request_type):
 
-    out = {"hpp":[],"cpp":[], "structs":[]}    
+    out = {"hpp":[],"cpp":[], "structs":[]}
 
     api_prefix = safe_extract("apiPrefix", service, "")
     compulsory = safe_extract("compulsoryParameters", service, [])
@@ -197,23 +198,54 @@ def parse_service(service, service_key_name, service_name, request_type):
 
         returns = safe_extract("returns", endpoint, [])
 
-        parameters =  compulsory[:]
-        parameters += safe_extract("parameters",endpoint,[])
-
         return_type = generate_return_type(returns, service_name, e)
 
         if len(return_type["struct"]) > 0:
             out["structs"] += [return_type["struct"]]
 
-        function_def = generate_function_definition(return_type, service_key_name, service_name, e, parameters, query_string, returns, request_type, api_prefix)
+        parameters =  compulsory[:]
+        parameters += safe_extract("parameters",endpoint,[])
 
-        out["hpp"] += [function_def["hpp"]]
-        out["cpp"] += [function_def["cpp"]]
-    
+        multi_type = False
+
+        parameter_combinations = []
+
+        base_params = []
+
+        for p in parameters:
+            if isinstance(p['type'], (list,)):
+                multi_type = True
+                continue
+
+            base_params += [p]
+
+        if multi_type:
+            for p in parameters:
+                if isinstance(p['type'], (list,)):
+                    for typ in p['type']:
+                        add_params = base_params[:]
+                        add_params += [{
+                            "name":p["name"],
+                            "type":typ
+                        }]
+                        parameter_combinations += [add_params]
+
+            for c in parameter_combinations:
+                function_def = generate_function_definition(return_type, service_key_name, service_name, e, c, query_string, returns, request_type, api_prefix)
+
+                out["hpp"] += [function_def["hpp"]]
+                out["cpp"] += [function_def["cpp"]]
+
+        else:
+            function_def = generate_function_definition(return_type, service_key_name, service_name, e, parameters, query_string, returns, request_type, api_prefix)
+
+            out["hpp"] += [function_def["hpp"]]
+            out["cpp"] += [function_def["cpp"]]
+
     return out
 
 template_location = "./templates"
-out_location = "../generated-services"
+out_location = "../"
 
 
 template_header = open(template_location + "/template.h", "r").readlines()
@@ -223,12 +255,12 @@ translations = open("./translations.json")
 translations = json.load(translations)
 
 try:
-    os.mkdir("../generated-services/source")
+    os.mkdir("../source")
 except:
     print "exists"
 
 try:
-    os.mkdir("../generated-services/inc")
+    os.mkdir("../inc")
 except:
     print "exists"
 
@@ -252,6 +284,10 @@ for service in translations.keys():
     }
 
     for serviceEp in translations[service]:
+
+        if safe_extract("hub_only", translations[service][serviceEp], False):
+            continue
+
         parsed_service = parse_service(translations[service][serviceEp], service, serviceCPPName, serviceEp)
 
         mapping["SERVICE_STRUCTS"] += '\r\n'.join(parsed_service["structs"])
@@ -274,9 +310,9 @@ for service in translations.keys():
                     l = l.replace(m[0], mapping[match])
                 else:
                     l = l.replace(m[0],"")
-            
+
             out_h_lines += [l]
-        
+
         for l in template_body:
             matches = re.findall("(%([a-zA-z]*)%)", l)
 
@@ -287,11 +323,10 @@ for service in translations.keys():
                     l = l.replace(m[0], mapping[match])
                 else:
                     l = l.replace(m[0],"")
-            
+
             out_cpp_lines += [l]
 
         out_h_file.writelines(out_h_lines)
         out_cpp_file.writelines(out_cpp_lines)
 
 
-        
