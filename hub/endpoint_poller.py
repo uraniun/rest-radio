@@ -85,6 +85,8 @@ class EndpointPoller:
                 record = response_json[r]
                 diff += [record]
 
+        # TODO: package and return a radio packet....
+
         self.cached_response[self.poll_urls[self.url_index]] = response_json
         self.url_index = (self.url_index + 1) % len(self.poll_urls)
 

@@ -1,6 +1,8 @@
 
 #include "CloudVariable.h"
 
+CloudVariable* CloudVariable::variables[CLOUD_VARIABLE_MAX_VARIABLES] = { NULL };
+
 const unsigned char hashTable[256] = {
     251, 175, 119, 215, 81, 14, 79, 191, 103, 49, 181, 143, 186, 157,  0,
     232, 31, 32, 55, 60, 152, 58, 17, 237, 174, 70, 160, 144, 220, 90, 57,
@@ -48,19 +50,25 @@ uint16_t CloudVariable::pearsonHash(ManagedString s)
     return (uint16_t)(h1 << 8) + h2;
 }
 
-CloudVariable::CloudVariable(ManagedString variableNamespace, ManagedString variableName, ShareService s) : share(s)
+CloudVariable::CloudVariable(ManagedString variableNamespace, ManagedString variableName, Radio& r) : radio(r)
 {
-    this->namespaceHash = pearsonHash(variableNamespace);
+    this->variableNamespaceHash = pearsonHash(variableNamespace);
     this->variableNameHash = pearsonHash(variableName);
 
-
-    log_num(this->namespaceHash);
-    log_num(this->variableNameHash);
+    for (int i = 0; i < CLOUD_VARIABLE_MAX_VARIABLES; i++)
+        if (variables[i] == NULL)
+            variables[i] = this;
 }
 
-CloudVariable& CloudVariable::operator= (const ManagedString &value)
+void CloudVariable::operator= (const ManagedString &value)
 {
     this->value = value;
-    this->share.setSchool(this->variableNameHash, this->value);
-    return *this;
+    radio.cloud.variable.setVariable(this);
+}
+
+CloudVariable::~CloudVariable()
+{
+    for (int i = 0; i < CLOUD_VARIABLE_MAX_VARIABLES; i++)
+        if (variables[i] == this)
+            variables[i] = NULL;
 }

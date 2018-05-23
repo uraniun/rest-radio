@@ -1,11 +1,12 @@
 import json, os, re
 
-import ./utils
+from utils import safe_extract
 
 type_mapping = {
     "string":"ManagedString",
     "int": "int",
-    "float": "float"
+    "float": "float",
+    "uint16_t":"uint16_t"
 }
 
 tab = "    "

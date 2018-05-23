@@ -18,12 +18,12 @@ class ShareService : public MicroBitComponent
 
     ShareService(Radio& r);
 
-    int setSchool(ManagedString variable_name, ManagedString value);
-    int setSchool(ManagedString variable_name, int value);
-    int setSchool(ManagedString variable_name, float value);
-    int setEveryone(ManagedString variable_name, ManagedString value);
-    int setEveryone(ManagedString variable_name, int value);
-    int setEveryone(ManagedString variable_name, float value);
+    int setSchool(uint16_t name_hash, ManagedString value);
+    int setSchool(uint16_t name_hash, int value);
+    int setSchool(uint16_t name_hash, float value);
+    int setEveryone(uint16_t name_hash, ManagedString value);
+    int setEveryone(uint16_t name_hash, int value);
+    int setEveryone(uint16_t name_hash, float value);
 
     
 };

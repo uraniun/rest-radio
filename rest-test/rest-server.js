@@ -17,8 +17,7 @@ var namespace_obj = { }
 
 
 app.route('/api/share/:namespace/:building?').get(function(req, res){
-    console.log(req.params)
-    console.log(req.body)
+    console.log("get SHARE")
 
     if (!(req.params.namespace in namespace_obj))
     {
@@ -29,10 +28,7 @@ app.route('/api/share/:namespace/:building?').get(function(req, res){
 });
 
 app.route('/api/share/:namespace/:building?').post(function(req, res){
-    console.log(req.params)
-    console.log(req.body.variable_name)
-    console.log(req.body.value)
-
+    console.log("POST SHARE")
     if (!(req.params.namespace in namespace_obj))
     {
         namespace_obj[req.params.namespace] = {}

@@ -37,8 +37,8 @@
                 "everyone":{
                     "parameters":[
                         {
-                            "name":"variable_name",
-                            "type":"string"
+                            "name":"name_hash",
+                            "type":"uint16_t"
                         },
                         {
                             "name":"value",
@@ -49,8 +49,8 @@
                 "school":{
                     "parameters":[
                         {
-                            "name":"variable_name",
-                            "type":"string"
+                            "name":"name_hash",
+                            "type":"uint16_t"
                         },
                         {
                             "name":"value",

@@ -42,7 +42,7 @@ class SerialHandler():
                     break
 
                 if c == SLIP_ESC:
-                    next = s.read()
+                    next = self.s.read()
 
                     if next == SLIP_ESC_END:
                         packet += [SLIP_END]
