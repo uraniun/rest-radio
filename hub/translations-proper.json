@@ -138,59 +138,5 @@
                 }
             }
         }
-    },
-    "share":{
-        "POLL" : {
-            "hub_only" : true,
-            "baseURL":"http://localhost:8000/api/share/%endpoint%/%school_id?=%",
-            "endpoint":{
-                "everyone":{},
-                "school":{
-                    "parameters":[
-                        {
-                            "name":"school_id",
-                            "type":"string"
-                        }
-                    ]
-                }
-            }
-        },
-        "POST" : {
-            "apiPrefix":"set",
-            "baseURL":"http://localhost:8000/api/share/",
-            "microbitQueryString":"/%endpoint%/%id?%/",
-            "queryObject":{
-                "variable_name":"%variable_name%",
-                "value":"%value%"
-            },
-            "endpoint":{
-                "everyone":{
-                    "parameters":[
-                        {
-                            "name":"variable_name",
-                            "type":"string"
-                        },
-                        {
-                            "name":"value",
-                            "type":"string",
-                            "alternate_types":["int","float"]
-                        }
-                    ]
-                },
-                "school":{
-                    "parameters":[
-                        {
-                            "name":"variable_name",
-                            "type":"string"
-                        },
-                        {
-                            "name":"value",
-                            "type":"string",
-                            "alternate_types":["int","float"]
-                        }
-                    ]
-                }
-            }
-        }
     }
 }

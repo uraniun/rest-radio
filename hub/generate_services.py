@@ -104,9 +104,9 @@ def generate_function_body(parameters, microbit_query, endpoint, return_type, re
 
     #perform request
     if request_type == "GET":
-        body += tab + "DynamicType res = radio.rest.getRequest(\"" + microbit_query +"\");\r\n"
+        body += tab + "DynamicType res = radio.cloud.rest.getRequest(\"" + microbit_query +"\");\r\n"
     if request_type == "POST":
-        body += tab + "DynamicType res = radio.rest.postRequest(\"" + microbit_query +"\", t);\r\n"
+        body += tab + "DynamicType res = radio.cloud.rest.postRequest(\"" + microbit_query +"\", t);\r\n"
 
     if len(returns) == 0:
         body += tab + "return res.getStatus();\r\n"

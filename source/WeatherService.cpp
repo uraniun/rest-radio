@@ -15,29 +15,29 @@ int WeatherService::setRoomNone(ManagedString room, int temperature, int light_l
     t.appendInteger(temperature);
     t.appendInteger(light_level);
     t.appendInteger(humidity);
-    DynamicType res = radio.rest.postRequest("/weather/" + room + "/", t);
+    DynamicType res = radio.cloud.rest.postRequest("/weather/" + room + "/", t);
     return res.getStatus();
 }
 int WeatherService::setRoomLightlevel(ManagedString room, int light_level) {
     DynamicType t;
     t.appendInteger(light_level);
-    DynamicType res = radio.rest.postRequest("/weather/" + room + "/lightlevel/", t);
+    DynamicType res = radio.cloud.rest.postRequest("/weather/" + room + "/lightlevel/", t);
     return res.getStatus();
 }
 int WeatherService::setRoomTemperature(ManagedString room, int temperature) {
     DynamicType t;
     t.appendInteger(temperature);
-    DynamicType res = radio.rest.postRequest("/weather/" + room + "/temperature/", t);
+    DynamicType res = radio.cloud.rest.postRequest("/weather/" + room + "/temperature/", t);
     return res.getStatus();
 }
 int WeatherService::setRoomHumidity(ManagedString room, int humidity) {
     DynamicType t;
     t.appendInteger(humidity);
-    DynamicType res = radio.rest.postRequest("/weather/" + room + "/humidity/", t);
+    DynamicType res = radio.cloud.rest.postRequest("/weather/" + room + "/humidity/", t);
     return res.getStatus();
 }
 WeatherServiceForecastNow WeatherService::getForecastNow(ManagedString location) {
-    DynamicType res = radio.rest.getRequest("/weather/" + location + "/forecastNow/");
+    DynamicType res = radio.cloud.rest.getRequest("/weather/" + location + "/forecastNow/");
     WeatherServiceForecastNow ret;
     if (res.getStatus() == MICROBIT_OK) {
         ret.high = res.getInteger(0);
@@ -47,7 +47,7 @@ WeatherServiceForecastNow WeatherService::getForecastNow(ManagedString location)
     return ret;
 }
 WeatherServiceForecastTomorrow WeatherService::getForecastTomorrow(ManagedString location) {
-    DynamicType res = radio.rest.getRequest("/weather/" + location + "/forecastTomorrow/");
+    DynamicType res = radio.cloud.rest.getRequest("/weather/" + location + "/forecastTomorrow/");
     WeatherServiceForecastTomorrow ret;
     if (res.getStatus() == MICROBIT_OK) {
         ret.high = res.getString(0);
@@ -57,11 +57,11 @@ WeatherServiceForecastTomorrow WeatherService::getForecastTomorrow(ManagedString
     return ret;
 }
 ManagedString WeatherService::getTemperature(ManagedString location) {
-    DynamicType res = radio.rest.getRequest("/weather/" + location + "/temperature/");
+    DynamicType res = radio.cloud.rest.getRequest("/weather/" + location + "/temperature/");
     return res.getString(0);
 }
 WeatherServiceWind WeatherService::getWind(ManagedString location) {
-    DynamicType res = radio.rest.getRequest("/weather/" + location + "/wind/");
+    DynamicType res = radio.cloud.rest.getRequest("/weather/" + location + "/wind/");
     WeatherServiceWind ret;
     if (res.getStatus() == MICROBIT_OK) {
         ret.chill = res.getString(0);
