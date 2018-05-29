@@ -21,12 +21,12 @@ set(YOTTA_AUTO_SAMSUNG-RADIO_CPP_FILES
     ${SOURCE_FILES}
 )
 
-add_library(samsung-radio
+add_library(rest-radio
     ${YOTTA_AUTO_SAMSUNG-RADIO_CPP_FILES}
 )
 
-yotta_postprocess_target(LIBRARY samsung-radio)
+yotta_postprocess_target(LIBRARY rest-radio)
 
-target_link_libraries(samsung-radio
+target_link_libraries(rest-radio
     microbit-dal
 )
