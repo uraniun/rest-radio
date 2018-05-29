@@ -13,7 +13,9 @@ def auto_detect_microbit():
 
     micro_bits = []
     for p in ports:
-        if p.vid == MICROBIT_VID and p.pid == MICROBIT_PID:
+        if isinstance(p, tuple):
+            micro_bits += [p[0]]
+        elif p.vid == MICROBIT_VID and p.pid == MICROBIT_PID:
             micro_bits += [p.device]
 
     selected = None
