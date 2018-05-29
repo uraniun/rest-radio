@@ -1,7 +1,7 @@
 {
-  "name": "samsung-radio",
+  "name": "rest-radio",
   "version": "0.0.1",
-  "description": "Samsung radio protocol module",
+  "description": "REST radio protocol module",
   "license": "MIT",
   "dependencies": {
     "microbit-dal": "lancaster-university/microbit-dal#no-radio"
