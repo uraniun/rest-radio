@@ -1,6 +1,6 @@
-import sys, struct
+import sys, struct, random
 
-struct_format = "<HHb"
+struct_format = "<HHB"
 header_len = 5
 
 class RadioPacket:
@@ -11,20 +11,25 @@ class RadioPacket:
     SUBTYPE_EVENT = 0x08
 
     REQUEST_TYPE_GET_REQUEST = 0x01
-    REQUEST_TYPE_PUT_REQUEST = 0x02
-    REQUEST_TYPE_POST_REQUEST = 0x04
-    REQUEST_TYPE_DELETE_REQUEST = 0x08
+    REQUEST_TYPE_POST_REQUEST = 0x02
+    REQUEST_TYPE_CLOUD_VARIABLE = 0x04
+    REQUEST_TYPE_BROADCAST = 0x08
 
-    REQUEST_TYPE_STATUS_ACK = 0x10
-    REQUEST_TYPE_STATUS_ERROR = 0x20
-    REQUEST_TYPE_STATUS_OK = 0x40
-    REQUEST_TYPE_REPEATING = 0x80
+    REQUEST_STATUS_ACK = 0x20
+    REQUEST_STATUS_ERROR = 0x40
+    REQUEST_STATUS_OK = 0x80
 
+    """
+    Instantiate with another RadioPacket instance
+    """
     def __init_with_class(self,radioPacket):
         self.uid = radioPacket.uid
         self.app_id = radioPacket.app_id
         self.request_type = radioPacket.request_type
 
+    """
+    Instantiate with bytes from the serial line
+    """
     def __init_with_packet(self,packet):
         header = packet[:header_len]
         payload = packet[header_len:]
@@ -38,16 +43,32 @@ class RadioPacket:
 
         self.unmarshall(payload)
 
-    def __init__(self, packet):
+    """
+    Constructor
+
+    Packet could be another radio packet instance, or a byte array.
+
+    Alternately, if packet is none, appId uid and rtype can be manually specified.
+    """
+    def __init__(self, packet, appId = None, uid = None, rtype = None):
         self.data = []
 
         if packet.__class__.__name__ == "RadioPacket":
             print "init with class"
             self.__init_with_class(packet)
-        else:
+        elif packet != None:
             print "init with packet"
             self.__init_with_packet(packet)
+        else:
+            if appId == None or uid == None or rtype == None:
+                raise Exception("unexpected type given")
+            self.app_id = appId
+            self.request_type = rtype
+            self.uid = uid
 
+    """
+    Converts a byte string into member variables used in this instance
+    """
     def unmarshall(self, payload):
 
         if len(payload) == 0:
@@ -80,39 +101,57 @@ class RadioPacket:
            offset = 4
 
         self.data += [data]
-        
+
         self.unmarshall(remainder[offset:])
 
-    def marshall(self, status):
-        return_code = RadioPacket.REQUEST_TYPE_STATUS_OK 
-        
-        if not status:
-            return_code = RadioPacket.REQUEST_TYPE_STATUS_ERROR
+    """
+    Converts this python instance into a byte array for the serial line.
 
+    status can be True, False, or none. True / False indicates success, or failure. None indicates no status.
+    """
+    def marshall(self, status = None):
+        if status == None:
+            return_code = 0
+        elif status:
+            return_code = RadioPacket.REQUEST_STATUS_OK
+        else:
+            return_code = RadioPacket.REQUEST_STATUS_ERROR
+
+        print("DATA:")
+        print(self.data)
+        print(return_code)
         header = struct.pack(struct_format, self.uid, self.app_id, self.request_type | return_code)
 
         payload = ""
 
         for d in self.data:
             print str(d)
-
             if isinstance(d,basestring):
-                payload += struct.pack("b" + str(len(d) + 1) + "s", RadioPacket.SUBTYPE_STRING,(d + "\0").encode('utf8'))
+                print "str"
+                payload += struct.pack("<B" + str(len(d) + 1) + "s", RadioPacket.SUBTYPE_STRING,(d + "\0").encode('utf8'))
 
             if isinstance(d,int):
-                payload += struct.pack("bi",RadioPacket.SUBTYPE_INT, d)
-            
+                print "INT"
+                payload += struct.pack("<Bi",RadioPacket.SUBTYPE_INT, d)
+
             if isinstance(d,float):
-                payload += struct.pack("bf", RadioPacket.SUBTYPE_FLOAT, d)
+                print "float"
+                payload += struct.pack("<Bf", RadioPacket.SUBTYPE_FLOAT, d)
 
         return header + payload
 
+    """
+    append some data to this radiopacket for marshalling
+    """
     def append(self, data):
         if isinstance(data, list):
             self.data += data
         else:
             self.data += [data]
 
+    """
+    Retrieve unmarshalled data.
+    """
     def get(self, index):
         print self.data
         print len(self.data)

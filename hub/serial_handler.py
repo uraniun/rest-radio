@@ -3,25 +3,56 @@ from radio_packet import RadioPacket
 import struct
 
 # constants for the serial line internet protocol.
+# https://en.wikipedia.org/wiki/Serial_Line_Internet_Protocol
 SLIP_END = chr(0xC0)
 SLIP_ESC = chr(0xDB)
 SLIP_ESC_END = chr(0xDC)
 SLIP_ESC_ESC = chr(0xDD)
 
+"""
+This class handles the SLIPing and un-SLIPing of serial packets received from our bridged micro:bit
+"""
 class SerialHandler():
 
     s = None
 
+    # path could either be an existing serial instance or a string path
     def __init__(self, path, baud= 115200):
-        self.s = Serial(port= path,baudrate=baud)
 
+        if isinstance(path,basestring):
+            self.s = Serial(port= path,baudrate=baud)
+        else:
+            self.s = path
+
+        self.s.timeout = 1
+
+        # drain any lingering bytes
+        while True:
+            c = self.s.read()
+
+            if not c:
+                break
+
+        # no timeout from this point on.
+        self.s.timeout = None
+
+
+    """
+    Return an error response to the bridge.
+    """
     def error(self, originalPacket):
         returnPacket = RadioPacket(originalPacket)
         self.s.write(returnPacket.marshall(False))
 
+    """
+    Returns the number of bytes buffered
+    """
     def buffered(self):
         return self.s.in_waiting
 
+    """
+    Reads bytes from the serial line, un SLIPing them in the process.
+    """
     def read_packet(self):
         c = None
         packet = []
@@ -63,6 +94,9 @@ class SerialHandler():
 
         return ''.join(packet)
 
+    """
+    Writes bytes to the serial line, SLIPing them in the process.
+    """
     def write_packet(self, bytes):
         finalBytes = []
 
@@ -74,7 +108,7 @@ class SerialHandler():
 
             if b == SLIP_END:
                 finalBytes += SLIP_ESC
-                finalBytes +=SLIP_ESC_END
+                finalBytes += SLIP_ESC_END
                 continue
 
             finalBytes += b

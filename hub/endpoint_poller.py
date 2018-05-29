@@ -61,6 +61,9 @@ class EndpointPoller:
                 self.poll_urls += [ep_url]
 
     def poll(self):
+        if len(self.poll_urls) == 0:
+            return
+
         print self.poll_urls[self.url_index]
         res = requests.get(self.poll_urls[self.url_index])
 
