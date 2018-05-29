@@ -36,6 +36,10 @@ int WeatherService::setRoomHumidity(ManagedString room, int humidity) {
     DynamicType res = radio.cloud.rest.postRequest("/weather/" + room + "/humidity/", t);
     return res.getStatus();
 }
+int WeatherService::getDistance(ManagedString location) {
+    DynamicType res = radio.cloud.rest.getRequest("/weather/" + location + "/distance/");
+    return res.getInteger(0);
+}
 WeatherServiceForecastNow WeatherService::getForecastNow(ManagedString location) {
     DynamicType res = radio.cloud.rest.getRequest("/weather/" + location + "/forecastNow/");
     WeatherServiceForecastNow ret;

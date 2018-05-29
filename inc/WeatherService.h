@@ -40,6 +40,7 @@ class WeatherService : public MicroBitComponent
     int setRoomTemperature(ManagedString room, int temperature);
     int setRoomHumidity(ManagedString room, int humidity);
 
+    int getDistance(ManagedString location);
     WeatherServiceForecastNow getForecastNow(ManagedString location);
     WeatherServiceForecastTomorrow getForecastTomorrow(ManagedString location);
     ManagedString getTemperature(ManagedString location);
