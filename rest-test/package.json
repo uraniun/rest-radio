@@ -1,0 +1,12 @@
+{
+    "name": "rest-test",
+    "version": "0.0.1",
+    "dependencies": {
+      "socketio": "*",
+      "express":"*",
+      "body-parser":"*"
+    },
+    "devDependencies" : {
+      "my_test_framework": "^3.1.0"
+    }
+  }

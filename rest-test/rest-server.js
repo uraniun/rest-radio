@@ -3,6 +3,9 @@ var express = require('express'),
   port = 8000,
   bodyParser = require('body-parser');
 
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -16,7 +19,7 @@ app.route('/api/rooms/:room').post(function(req, res){
 var namespace_obj = { }
 
 
-app.route('/api/share/:namespace/:building?').get(function(req, res){
+app.route('/api/share/').get(function(req, res){
     console.log("get SHARE")
 
     if (!(req.params.namespace in namespace_obj))
@@ -24,28 +27,33 @@ app.route('/api/share/:namespace/:building?').get(function(req, res){
         namespace_obj[req.params.namespace] = {}
     }
 
-    res.json(namespace_obj[req.params.namespace])
+    res.json(namespace_obj)
 });
 
-app.route('/api/share/:namespace/:building?').post(function(req, res){
-    console.log("POST SHARE")
-    if (!(req.params.namespace in namespace_obj))
-    {
-        namespace_obj[req.params.namespace] = {}
+function track_changes(namespace, appId, variable_name, value)
+{
+    // create namespace if doesn't exist
+    if (!(namespace in namespace_obj))
+        namespace_obj[namespace] = {}
+
+    // create object for appId if doesn't exist
+    if (!(appId in namespace_obj[namespace]))
+        namespace_obj[namespace][appId] = {}
+
+    namespace_obj[namespace][appId][variable_name] = {
+        "value":value,
+        "timestamp": new Date().getTime()
     }
+}
 
-    if (req.params.building_id != undefined)
-        namespace_obj[req.params.namespace][req.params.building_id][req.body.variable_name] = {
-            "value":req.body.value,
-            "timestamp": new Date().getTime()
-        }
-    else
-        namespace_obj[req.params.namespace][req.body.variable_name] = {
-            "value":req.body.value,
-            "timestamp": new Date().getTime()
-        }
-
-    res.json({})
+io.on('connection', function(socket){
+    socket.on('variable_changed',function(msg){
+        console.log(msg)
+        track_changes(msg.namespace, msg.appId, msg.variable_name, msg.value)
+        socket.broadcast.emit('variable_changed',msg);
+    })
+    console.log('a user connected');
 });
 
+http.listen(8001)
 app.listen(port);
