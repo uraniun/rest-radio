@@ -20,7 +20,7 @@ def auto_detect_microbit():
 
     for mb in micro_bits:
         try:
-            s = Serial(port= mb,baudrate=115200, timeout=1)
+            s = Serial(port= mb,baudrate=115200, timeout=5)
         except:
             continue
         s.send_break()
