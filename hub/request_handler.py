@@ -9,6 +9,14 @@ A class that handles two types of micro:bit request:
 (1) A REST request, which always starts with a query string, parameters following in the main body of the packet. These requests conventionally talk to a REST endpoint
 (2) A Cloud Variable request, which shares a variable to a rest endpoint. Cloud variables have a namespace hash, a variable name hash, and a string value.
 """
+
+# CONSTANSTS DEFINATIONS
+PKG_WEATHER = "weather"
+PKG_IOT = "iot"
+PKG_ENERGY = "energy"
+PKG_CARBON = "carbon"
+PKG_INIT= "init"
+
 class RequestHandler:
 
     def __init__(self, rPacket, translations, hub_variables, cloud_ep):
@@ -119,17 +127,60 @@ class RequestHandler:
 
         return out
 
-    def processRESTRequest(self, url, request_type, translation):
+    def processRESTRequest(self, url, request_type, translation,part):
         operation = translation[request_type]
         baseURL = operation["baseURL"]
-        queryObject = operation["queryObject"]
+        #Header = operation["header"]
+        
         urlFormat = [x for x in operation["microbitQueryString"].split("/") if x]
-
-        # map micro:bit query string to variables
+        
+        
+        
+        if part == PKG_CARBON :
+            print "Handle carbon packages here"
+            print "method url"
+            print url
+            self.returnPacket.append("OK")
+            return self.returnPacket.marshall(True)
+         # map micro:bit query string to variables
         out = self.mapQueryString(url,urlFormat)
+        
+        
+        
+        print "out maping"
 
         print str(out)
 
+        
+        #print "header and url"
+        #print Header
+        print baseURL
+        print urlFormat
+                
+        auth_token ='ddca3062-11ff-4116-87dc-36da9f01afe6'
+        hed = {'Authorization': 'Bearer ' + auth_token}
+        dataOn = {"commands":[{"component":"main","capability": "switch", "command":"on"}]}
+        dataOff = {"commands":[{"component":"main","capability": "switch", "command":"off"}]}
+    
+        if part == PKG_IOT :
+            
+            data1 = self.rPacket.get(1)
+	
+            print data1
+	
+            data2 = self.rPacket.get(2)
+	
+            print data2
+            
+            if data2 == 1:
+                requests.post(baseURL, json=dataOn,headers=hed)
+            else:
+                requests.post(baseURL, json=dataOff,headers=hed)
+                
+            self.returnPacket.append("OK")
+            return self.returnPacket.marshall(True)
+
+       
         # if no endpoint is specified, set a default key value of none
         if out["endpoint"] is None:
             out["endpoint"] = "none"
@@ -145,6 +196,8 @@ class RequestHandler:
             out = self.__join_dicts(out, self.extractFurtherObjects(1, endpoint["parameters"]))
 
         regexStrings = {}
+        
+        queryObject = operation["queryObject"]
 
         # for each query field in the queryobject extract the %variable_name% pattern.
         for param in queryObject:
@@ -160,6 +213,7 @@ class RequestHandler:
             # set the corresponding value in the out obj
             out[param] = p
 
+        
         # to simplify code, lets lump the base url (that may require regex'ing) into the queryobj
         regexStrings["baseURL"] = re.findall(hub_regexp, baseURL)
         queryObject["baseURL"] = baseURL
@@ -187,7 +241,8 @@ class RequestHandler:
                 queryObject[regExp] = queryObject[regExp].replace(match,str(value))
 
         print str(queryObject)
-
+        
+        
         # remove our now regexp'd baseURL from the query object
         baseURL = queryObject["baseURL"]
         del queryObject["baseURL"]
@@ -195,7 +250,10 @@ class RequestHandler:
         if request_type == "GET":
             r = requests.get(baseURL, params= queryObject)
         elif request_type == "POST":
-            r = requests.post(baseURL, data= queryObject)
+            if Header == True:
+                requests.post(baseURL, json=dataOn,headers=hed)
+            else:
+                r = requests.post(baseURL, data= queryObject)
 
         if "jsonPath" in endpoint.keys():
             path = [x for x in endpoint["jsonPath"].split(".") if x]
@@ -210,8 +268,9 @@ class RequestHandler:
 
             for ret in returnVariables:
                 print jsonObj
-                print jsonObj[ret["name"]]
-                self.returnPacket.append(jsonObj[ret["name"]])
+		if ret["name"] in jsonObj:
+                    print jsonObj[ret["name"]]
+                    self.returnPacket.append(jsonObj[ret["name"]])
 
 
         return self.returnPacket.marshall(True)
@@ -220,9 +279,19 @@ class RequestHandler:
 
         # every rest request should have the URL as the first item.
         url = self.rPacket.get(0)
+        
+        print "url"
+        
+	print url
+	
+	
+	
+	
 
         pieces = [x for x in url.split("/") if x is not '']
-
+        
+        print "pieces"
+        
         print pieces
 
         part, rest = pieces[0],pieces[1:]
@@ -237,7 +306,7 @@ class RequestHandler:
         if self.rPacket.request_type == RadioPacket.REQUEST_TYPE_POST_REQUEST:
             request_type = "POST"
 
-        return self.processRESTRequest(rest, request_type, translation)
+        return self.processRESTRequest(rest, request_type, translation,part)
 
     def handleCloudVariable(self):
         namespaceHash = self.rPacket.get(0)
