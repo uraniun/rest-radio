@@ -154,8 +154,8 @@ class RequestHandler:
         
         #print "header and url"
         #print Header
-        print baseURL
-        print urlFormat
+        #print baseURL
+        #print urlFormat
                 
         auth_token ='ddca3062-11ff-4116-87dc-36da9f01afe6'
         hed = {'Authorization': 'Bearer ' + auth_token}
@@ -163,6 +163,8 @@ class RequestHandler:
         dataOff = {"commands":[{"component":"main","capability": "switch", "command":"off"}]}
     
         if part == PKG_IOT :
+            
+            baseURL = "https://api.smartthings.com/v1/devices/1439773a-c144-41cd-9c5d-d1b03d3fe0a1/commands"
             
             data1 = self.rPacket.get(1)
 	
