@@ -130,31 +130,72 @@ class RequestHandler:
     def processRESTRequest(self, url, request_type, translation,part):
         operation = translation[request_type]
         baseURL = operation["baseURL"]
-        #Header = operation["header"]
         
         urlFormat = [x for x in operation["microbitQueryString"].split("/") if x]
         
-        
+        #print "baseURL"
+        #print baseURL
         
         if part == PKG_CARBON :
-            print "Handle carbon packages here"
+            res = 'OK'
+            #print "Handle carbon package here"
+            #print "method url"
+            print url
+            if url[0] == "index":
+                URLreq = baseURL + "intensity"
+                r = requests.get(URLreq)
+                response = json.loads(r.text)
+                print response['data'][0]['intensity'][url[0]]
+                res = response['data'][0]['intensity'][url[0]]
+                
+            if url[0] == "value":
+                URLreq = baseURL + "intensity"
+                r = requests.get(URLreq)
+                response = json.loads(r.text)
+                if response['data'][0]['intensity']['actual'] is not None:
+                    res = str(response['data'][0]['intensity']['actual'])
+                else:
+                    res = str(response['data'][0]['intensity']['forecast'])
+                
+            
+            if url[0] == 'genmix':
+                URLreq = baseURL + "generation"
+                r = requests.get(URLreq)
+                response = json.loads(r.text)
+                genmix = response['data']['generationmix']
+                for gendata in genmix:
+                    if gendata['fuel'] == url[1]:
+                        res = str(gendata['perc'])
+                        break
+            
+            print res
+            self.returnPacket.append(res)
+            return self.returnPacket.marshall(True)
+                 
+        
+        if part == PKG_ENERGY :
+            print "Handle energy package here"
             print "method url"
             print url
             self.returnPacket.append("OK")
             return self.returnPacket.marshall(True)
+               
+        
+        if part == PKG_INIT :
+            print "Handle Init package here"
+            print "method url"
+            print url
+            self.returnPacket.append("OK")
+            return self.returnPacket.marshall(True)
+        
+        
+        
          # map micro:bit query string to variables
         out = self.mapQueryString(url,urlFormat)
         
+        #print "out maping"
+        #print str(out)
         
-        
-        print "out maping"
-
-        print str(out)
-
-        
-        #print "header and url"
-        #print Header
-        #print baseURL
         #print urlFormat
                 
         auth_token ='ddca3062-11ff-4116-87dc-36da9f01afe6'
@@ -168,11 +209,11 @@ class RequestHandler:
             
             data1 = self.rPacket.get(1)
 	
-            print data1
+            #print data1
 	
             data2 = self.rPacket.get(2)
 	
-            print data2
+            #print data2
             
             if data2 == 1:
                 requests.post(baseURL, json=dataOn,headers=hed)
@@ -252,10 +293,7 @@ class RequestHandler:
         if request_type == "GET":
             r = requests.get(baseURL, params= queryObject)
         elif request_type == "POST":
-            if Header == True:
-                requests.post(baseURL, json=dataOn,headers=hed)
-            else:
-                r = requests.post(baseURL, data= queryObject)
+            r = requests.post(baseURL, data= queryObject)
 
         if "jsonPath" in endpoint.keys():
             path = [x for x in endpoint["jsonPath"].split(".") if x]
@@ -272,7 +310,7 @@ class RequestHandler:
                 print jsonObj
 		if ret["name"] in jsonObj:
                     print jsonObj[ret["name"]]
-                    self.returnPacket.append(jsonObj[ret["name"]])
+                    self.returnPacket.append(str(jsonObj[ret["name"]]))
 
 
         return self.returnPacket.marshall(True)
@@ -282,9 +320,9 @@ class RequestHandler:
         # every rest request should have the URL as the first item.
         url = self.rPacket.get(0)
         
-        print "url"
+        #print "url"
         
-	print url
+	#print url
 	
 	
 	
@@ -292,9 +330,9 @@ class RequestHandler:
 
         pieces = [x for x in url.split("/") if x is not '']
         
-        print "pieces"
+        #print "pieces"
         
-        print pieces
+        #print pieces
 
         part, rest = pieces[0],pieces[1:]
 
