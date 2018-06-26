@@ -158,6 +158,38 @@
                             "name":"status"
                         }
                     ]
+                },
+                "bulbState":{
+                    "returns":[
+                        {
+                            "type":"string",
+                            "name":"status"
+                        }
+                    ]
+                },
+                "bulbLevel":{
+                    "returns":[
+                        {
+                            "type":"string",
+                            "name":"status"
+                        }
+                    ]
+                },
+                "bulbColour":{
+                    "returns":[
+                        {
+                            "type":"string",
+                            "name":"status"
+                        }
+                    ]
+                },
+                "switchState":{
+                    "returns":[
+                        {
+                            "type":"string",
+                            "name":"status"
+                        }
+                    ]
                 }
             }
         },
@@ -175,6 +207,12 @@
                         {
                             "name":"state",
                             "type":"int"
+                        }
+                    ],
+                    "returns":[
+                        {
+                            "type":"string",
+                            "name":"status"
                         }
                     ]
                 },
@@ -267,7 +305,7 @@
     "carbon":{
         "GET" : {
             "apiPrefix":"get",
-            "baseURL":"http://carbonintensity.org.uk/",
+            "baseURL":"https://api.carbonintensity.org.uk/",
             "microbitQueryString":"/%endpoint%/%unit?%",
             "compulsoryParameters":[
                 {
@@ -306,7 +344,7 @@
     "share":{
         "GET" : {
             "apiPrefix":"get",
-            "baseURL":"http://global-logic.com/api/v1/devices/",
+            "baseURL":"http://stag.p3htji6rui.eu-west-2.elasticbeanstalk.com/api/v1/variables/varname/",
             "microbitQueryString":"/%endpoint%/%unit?%",
             "compulsoryParameters":[
                 {
@@ -327,6 +365,7 @@
         },
         "POST" : {
             "apiPrefix":"set",
+            "baseURL":"http://stag.p3htji6rui.eu-west-2.elasticbeanstalk.com/api/v1/variables/",
             "microbitQueryString":"/%endpoint%/",
             "endpoint":{
                 "shareData":{
