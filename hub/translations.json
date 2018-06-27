@@ -344,7 +344,7 @@
     "share":{
         "GET" : {
             "apiPrefix":"get",
-            "baseURL":"http://stag.p3htji6rui.eu-west-2.elasticbeanstalk.com/api/v1/variables/varname/",
+            "baseURL":"http://stag.p3htji6rui.eu-west-2.elasticbeanstalk.com/api/v1/variables/",
             "microbitQueryString":"/%endpoint%/%unit?%",
             "compulsoryParameters":[
                 {

@@ -192,10 +192,34 @@ class RequestHandler:
         
         
         if part == PKG_SHARE:
+            res = "OK"
+            headers={'school-id': 'db3130cd-a465-4857-a9ea-902ab9aca3e9',
+                              'pi-id': '6302a9f9-55e6-41ea-9c54-5e118dcf3686'}
             print "Handle share package here"
             print "method url"
             print url
-            self.returnPacket.append("OK")
+            
+            if url[0] == "fetchData":
+                URLreq = baseURL + url[1]
+                resp = requests.get(URLreq,head=headers)
+                resJson = resp.text
+                if resJson['value'] is not None:
+                    res = resJson['value']
+                else:
+                    res = "NOT FOUND"
+
+            if url[0] == "shareData":
+                varData = self.rPacket.get(1)
+                varName = self.rPacket.get(2)
+                varType = self.rPacket.get(2)
+                if varType == 0:
+                    SHARE = 'ALL'
+                else:
+                    SHARE = 'SCHOOL'
+                jsonData={'name': varName, 'description': 'my school data', 'shared_with': SHARE, 'value': varData}
+                resp = requests.get(URLreq,head=headers,data=jsonData)
+
+            self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
         
          # map micro:bit query string to variables
