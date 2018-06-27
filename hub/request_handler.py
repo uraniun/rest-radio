@@ -193,35 +193,35 @@ class RequestHandler:
         
         if part == PKG_SHARE:
             res = "OK"
-            headers={'school-id': 'db3130cd-a465-4857-a9ea-902ab9aca3e9','pi-id': '6302a9f9-55e6-41ea-9c54-5e118dcf3686'}
+            
             print "Handle share package here"
             print "method url"
             print url
             
             if url[0] == "fetchData":
                 URLreq = baseURL + url[1]
-                resp = requests.get(URLreq,headers)
-                print URLreq
-                print headers
-                resJson = resp.text
-                print resJson
-                if url[1] in resJson:
-                    res = resJson['description']
+                resp = requests.get(URLreq,headers={'school-id':'db3130cd-a465-4857-a9ea-902ab9aca3e9','pi-id':'6302a9f9-55e6-41ea-9c54-5e118dcf3686'})
+                #print URLreq
+                resJson = json.loads(resp.text)
+                #print resJson
+                if resJson['value'] is not None:
+                    res = resJson['value']
                 else:
                     res = "NOT FOUND"
 
             if url[0] == "shareData":
-                jsonData={'name': 'varName', 'description': 'varDesc', 'shared_with': 'SCHOOL', 'value': '0'}
+                jsonData={'shared_with': 'SCHOOL', 'value': '0'}
                 jsonData['description'] = self.rPacket.get(1)
                 #jsonData['value'] = jsonData['description']
-                jsonData['name'] = self.rPacket.get(2)
+                name = self.rPacket.get(2)
+                URLreq = baseURL +  name + "/"
                 varType = self.rPacket.get(2)
                 if varType == 0:
                     jsonData['shared_with'] = 'ALL'
                 else:
                     jsonData['shared_with'] = 'SCHOOL'
                 print jsonData
-                resp = requests.post(baseURL,headers,jsonData)
+                resp = requests.post(URLreq,headers={'school-id':'db3130cd-a465-4857-a9ea-902ab9aca3e9','pi-id':'6302a9f9-55e6-41ea-9c54-5e118dcf3686'},data=jsonData)
 
             print resp
             self.returnPacket.append(res)
