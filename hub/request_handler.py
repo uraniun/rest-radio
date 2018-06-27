@@ -16,6 +16,7 @@ PKG_IOT = "iot"
 PKG_ENERGY = "energy"
 PKG_CARBON = "carbon"
 PKG_INIT= "init"
+PKG_SHARE = "share"
 
 class RequestHandler:
 
@@ -189,6 +190,13 @@ class RequestHandler:
             return self.returnPacket.marshall(True)
         
         
+        
+        if part == PKG_SHARE:
+            print "Handle share package here"
+            print "method url"
+            print url
+            self.returnPacket.append("OK")
+            return self.returnPacket.marshall(True)
         
          # map micro:bit query string to variables
         out = self.mapQueryString(url,urlFormat)
