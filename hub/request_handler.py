@@ -203,7 +203,7 @@ class RequestHandler:
                 resp = requests.get(URLreq,headers={'school-id':'db3130cd-a465-4857-a9ea-902ab9aca3e9','pi-id':'6302a9f9-55e6-41ea-9c54-5e118dcf3686'})
                 #print URLreq
                 resJson = json.loads(resp.text)
-                #print resJson
+                print resJson
                 if resJson['value'] is not None:
                     res = resJson['value']
                 else:
@@ -211,7 +211,7 @@ class RequestHandler:
 
             if url[0] == "shareData":
                 jsonData={'shared_with': 'SCHOOL', 'value': '0'}
-                jsonData['description'] = self.rPacket.get(1)
+                jsonData['value'] = self.rPacket.get(1)
                 #jsonData['value'] = jsonData['description']
                 name = self.rPacket.get(2)
                 URLreq = baseURL +  name + "/"
