@@ -1,4 +1,4 @@
-import sys, struct, json, re
+import sys, struct, json, re, pickle
 from auto_detector import auto_detect_microbit
 from radio_packet import RadioPacket
 from request_handler import RequestHandler
@@ -20,6 +20,8 @@ hub_variables = {
     }
 }
 
+
+
 auto_detect = False
 # if auto-detect is False, this path will be used.
 selected = "/dev/ttyACM0"
@@ -36,7 +38,7 @@ if auto_detect:
 
 #this class can be used to poll an endpoint, I didn't find a real use for it.
 # ep_poller = EndpointPoller(translations, hub_variables)
-
+    
 serial_handler = SerialHandler(selected)
 
 # while true swap between polling EPs and receiving / sending.

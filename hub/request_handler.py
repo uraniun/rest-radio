@@ -1,7 +1,8 @@
 from radio_packet import RadioPacket
-import re, requests,urllib,json
+import re, requests,urllib,json, pickle
 
 from utils import hub_regexp
+from pathlib import Path
 
 """
 A class that handles two types of micro:bit request:
@@ -18,6 +19,10 @@ PKG_CARBON = "carbon"
 PKG_INIT= "init"
 PKG_SHARE = "share"
 
+PERSIST_FILE= "DataStore.txt"
+
+PI_ID = {'piId':None, 'schoolId': None}
+
 class RequestHandler:
 
     def __init__(self, rPacket, translations, hub_variables, cloud_ep):
@@ -26,6 +31,14 @@ class RequestHandler:
         self.translations = translations
         self.cloud_ep = cloud_ep
         self.returnPacket = RadioPacket(rPacket)
+        file = Path(PERSIST_FILE)
+        if file.is_file():
+            file = open(PERSIST_FILE,'r')
+            self.PI_ID = pickle.load(file)
+            file.close()
+        else:
+            self.PI_ID = PI_ID
+        print self.PI_ID
 
     """
     Recursively traverse a python json structure given a dot separated path. Array indices also work here.
@@ -130,7 +143,8 @@ class RequestHandler:
 
     def processRESTRequest(self, url, request_type, translation,part):
         operation = translation[request_type]
-        baseURL = operation["baseURL"]
+	if "baseURL" in operation:
+            baseURL = operation["baseURL"]
         
         urlFormat = [x for x in operation["microbitQueryString"].split("/") if x]
         
@@ -183,10 +197,24 @@ class RequestHandler:
                
         
         if part == PKG_INIT :
-            print "Handle Init package here"
-            print "method url"
-            print url
-            self.returnPacket.append("OK")
+            res = "OK"
+            #print "Handle Init package here"
+            #print "method url"
+            #print url
+            #print PI_ID
+            id = self.rPacket.get(1)
+            if url[0] == "piId" or url[0] == "schoolId":
+                if self.PI_ID[url[0]] is None:
+                    self.PI_ID[url[0]] =  id
+                    file = open(PERSIST_FILE,'w')
+                    pickle.dump(self.PI_ID,file)
+                    file.close()
+                    print "OK"
+                else:
+                    res = self.PI_ID[url[0]]
+                    print "Not OK"
+            #print PI_ID[url[0]]
+            self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
         
         
