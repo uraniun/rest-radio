@@ -204,10 +204,30 @@ class RequestHandler:
                  
         
         if part == PKG_ENERGY :
+            res = "OK"
             print "Handle energy package here"
             print "method url"
             print url
-            self.returnPacket.append("OK")
+            if url[0] == "energyLevel":
+                if url[1] == "0":
+                    URLreq = baseURL + "electricity/123"
+                elif url[1] == "1":
+                    URLreq = baseURL + "gas/123"
+                else:
+                    URLreq = baseURL + "solar/asdf"
+            try:
+                resp = requests.get(URLreq)
+                resJson = json.loads(resp.text)
+                
+                if 'value' in resJson:
+                    res = str(resJson['value'])[:5]
+                
+            except requests.exceptions.RequestException as e:
+                print "Connection error: {}".format(e)
+                self.returnPacket.append("API CONNECTION ERROR")
+                return self.returnPacket.marshall(True)
+            
+            self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
                
         
