@@ -232,7 +232,7 @@ class RequestHandler:
                 #print URLreq
                 resJson = json.loads(resp.text)
                 print resJson
-                if resJson['value'] is not None:
+                if 'value' in resJson:
                     res = resJson['value']
                 else:
                     res = "NOT FOUND"
