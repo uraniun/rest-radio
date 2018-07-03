@@ -38,7 +38,7 @@ class RequestHandler:
             file.close()
         else:
             self.PI_ID = PI_ID
-        print self.PI_ID
+        #print self.PI_ID
 
     """
     Recursively traverse a python json structure given a dot separated path. Array indices also work here.
@@ -155,17 +155,27 @@ class RequestHandler:
             res = 'OK'
             #print "Handle carbon package here"
             #print "method url"
-            print url
+            #print url
             if url[0] == "index":
                 URLreq = baseURL + "intensity"
-                r = requests.get(URLreq)
+                try:
+                    r = requests.get(URLreq)
+                except requests.exceptions.RequestException as e:
+                    print "Connection error: {}".format(e)
+                    self.returnPacket.append("API CONNECTION ERROR")
+                    return self.returnPacket.marshall(True)
                 response = json.loads(r.text)
                 print response['data'][0]['intensity'][url[0]]
                 res = response['data'][0]['intensity'][url[0]]
                 
             if url[0] == "value":
                 URLreq = baseURL + "intensity"
-                r = requests.get(URLreq)
+                try:
+                    r = requests.get(URLreq)
+                except requests.exceptions.RequestException as e:
+                    print "Connection error: {}".format(e)
+                    self.returnPacket.append("API CONNECTION ERROR")
+                    return self.returnPacket.marshall(True)
                 response = json.loads(r.text)
                 if response['data'][0]['intensity']['actual'] is not None:
                     res = str(response['data'][0]['intensity']['actual'])
@@ -175,7 +185,12 @@ class RequestHandler:
             
             if url[0] == 'genmix':
                 URLreq = baseURL + "generation"
-                r = requests.get(URLreq)
+                try:
+                    r = requests.get(URLreq)
+                except requests.exceptions.RequestException as e:
+                    print "Connection error: {}".format(e)
+                    self.returnPacket.append("API CONNECTION ERROR")
+                    return self.returnPacket.marshall(True)    
                 response = json.loads(r.text)
                 genmix = response['data']['generationmix']
                 for gendata in genmix:
@@ -228,7 +243,14 @@ class RequestHandler:
             
             if url[0] == "fetchData":
                 URLreq = baseURL + url[1]
-                resp = requests.get(URLreq,headers={'school-id':'db3130cd-a465-4857-a9ea-902ab9aca3e9','pi-id':'6302a9f9-55e6-41ea-9c54-5e118dcf3686'})
+                try:
+                    
+                    resp = requests.get(URLreq,headers={'school-id':'db3130cd-a465-4857-a9ea-902ab9aca3e9','pi-id':'6302a9f9-55e6-41ea-9c54-5e118dcf3686'})
+                
+                except requests.exceptions.RequestException as e:
+                    print "Connection error: {}".format(e)
+                    self.returnPacket.append("API CONNECTION ERROR")
+                    return self.returnPacket.marshall(True)
                 #print URLreq
                 resJson = json.loads(resp.text)
                 print resJson
@@ -249,7 +271,12 @@ class RequestHandler:
                 else:
                     jsonData['shared_with'] = 'SCHOOL'
                 print jsonData
-                resp = requests.post(URLreq,headers={'school-id':'db3130cd-a465-4857-a9ea-902ab9aca3e9','pi-id':'6302a9f9-55e6-41ea-9c54-5e118dcf3686'},data=jsonData)
+                try:
+                    resp = requests.post(URLreq,headers={'school-id':'db3130cd-a465-4857-a9ea-902ab9aca3e9','pi-id':'6302a9f9-55e6-41ea-9c54-5e118dcf3686'},data=jsonData)
+                except requests.exceptions.RequestException as e:
+                    print "Connection error: {}".format(e)
+                    self.returnPacket.append("API CONNECTION ERROR")
+                    return self.returnPacket.marshall(True)
 
             print resp
             self.returnPacket.append(res)
@@ -273,18 +300,19 @@ class RequestHandler:
             baseURL = "https://api.smartthings.com/v1/devices/1439773a-c144-41cd-9c5d-d1b03d3fe0a1/commands"
             
             data1 = self.rPacket.get(1)
-	
-            #print data1
-	
             data2 = self.rPacket.get(2)
-	
-            #print data2
             
-            if data2 == 1:
-                requests.post(baseURL, json=dataOn,headers=hed)
-            else:
-                requests.post(baseURL, json=dataOff,headers=hed)
-                
+            try:
+                if data2 == 1:
+                    requests.post(baseURL, json=dataOn,headers=hed)
+                else:
+                    requests.post(baseURL, json=dataOff,headers=hed)
+                    
+            except requests.exceptions.RequestException as e:
+                print "Connection error: {}".format(e)
+                self.returnPacket.append("API CONNECTION ERROR")
+                return self.returnPacket.marshall(True)
+        
             self.returnPacket.append("OK")
             return self.returnPacket.marshall(True)
 
@@ -355,10 +383,17 @@ class RequestHandler:
         baseURL = queryObject["baseURL"]
         del queryObject["baseURL"]
 
-        if request_type == "GET":
-            r = requests.get(baseURL, params= queryObject)
-        elif request_type == "POST":
-            r = requests.post(baseURL, data= queryObject)
+        try:
+            
+            if request_type == "GET":
+                r = requests.get(baseURL, params= queryObject)
+            elif request_type == "POST":
+                r = requests.post(baseURL, data= queryObject)
+        
+        except requests.exceptions.RequestException as e:
+            print "Connection error: {}".format(e)
+            self.returnPacket.append("API CONNECTION ERROR")
+            return self.returnPacket.marshall(True)
 
         if "jsonPath" in endpoint.keys():
             path = [x for x in endpoint["jsonPath"].split(".") if x]
