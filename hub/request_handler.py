@@ -23,6 +23,8 @@ PERSIST_FILE= "DataStore.txt"
 
 PI_ID = {'piId':None, 'schoolId': None}
 
+PI_HEADER = {'school-id': None, 'pi-id': None}
+
 class RequestHandler:
 
     def __init__(self, rPacket, translations, hub_variables, cloud_ep):
@@ -36,6 +38,8 @@ class RequestHandler:
             file = open(PERSIST_FILE,'r')
             self.PI_ID = pickle.load(file)
             file.close()
+            PI_HEADER['school-id'] = self.PI_ID['schoolId']
+            PI_HEADER['pi-id'] = self.PI_ID['piId']
         else:
             self.PI_ID = PI_ID
         #print self.PI_ID
@@ -256,7 +260,9 @@ class RequestHandler:
         
         if part == PKG_SHARE:
             res = "OK"
-            
+            if PI_HEADER['school-id'] == None or PI_HEADER['pi-id'] == None:
+                print "Check headers"
+                print PI_HEADER
             print "Handle share package here"
             print "method url"
             print url
@@ -265,7 +271,7 @@ class RequestHandler:
                 URLreq = baseURL + url[1]
                 try:
                     
-                    resp = requests.get(URLreq,headers={'school-id':'db3130cd-a465-4857-a9ea-902ab9aca3e9','pi-id':'6302a9f9-55e6-41ea-9c54-5e118dcf3686'})
+                    resp = requests.get(URLreq,headers=PI_HEADER)
                 
                 except requests.exceptions.RequestException as e:
                     print "Connection error: {}".format(e)
@@ -292,7 +298,7 @@ class RequestHandler:
                     jsonData['shared_with'] = 'SCHOOL'
                 print jsonData
                 try:
-                    resp = requests.post(URLreq,headers={'school-id':'db3130cd-a465-4857-a9ea-902ab9aca3e9','pi-id':'6302a9f9-55e6-41ea-9c54-5e118dcf3686'},data=jsonData)
+                    resp = requests.post(URLreq,headers=PI_HEADER,data=jsonData)
                 except requests.exceptions.RequestException as e:
                     print "Connection error: {}".format(e)
                     self.returnPacket.append("API CONNECTION ERROR")
