@@ -61,10 +61,10 @@ class SerialHandler():
         while True:
             c = self.s.read()
 
-            if c == '\\':
-                debug = not debug
-                print "debug mode toggled", str(debug)
-                continue
+            #if c == '\\':
+            #    debug = not debug
+            #    print "debug mode toggled", str(debug)
+            #    continue
 
             if not debug:
 
