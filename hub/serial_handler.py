@@ -87,7 +87,7 @@ class SerialHandler():
 
                     continue
 
-                print("%c [%d]" % (c, ord(c)))
+#                print("%c [%d]" % (c, ord(c)))
                 packet += [c]
             else:
                 print("DEBUG: %c [%d]" % (c, ord(c)))

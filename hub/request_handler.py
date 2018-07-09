@@ -1,5 +1,6 @@
 from radio_packet import RadioPacket
 import re, requests,urllib,json, pickle
+import datetime
 
 from utils import hub_regexp
 from pathlib import Path
@@ -478,10 +479,11 @@ class RequestHandler:
         
         #print "url"
         
-	#print url
-	
-	
-	
+	    #print url
+
+        now = datetime.datetime.now()
+        print "------------------Time:", now.hour, now.minute, now.second	
+		
 	
 
         pieces = [x for x in url.split("/") if x is not '']
