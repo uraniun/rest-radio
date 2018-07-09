@@ -18,7 +18,7 @@ class ShareService : public MicroBitComponent
 
     ShareService(Radio& r);
 
-    int setShareData(ManagedString value, ManagedString name, int level);
+    ManagedString setShareData(ManagedString value, ManagedString name, int level);
 
     ManagedString getFetchData(ManagedString endpoint);
 
