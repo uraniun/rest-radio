@@ -383,7 +383,7 @@
         },
         "POST" : {
             "apiPrefix":"set",
-            "baseURL":"http://stag.p3htji6rui.eu-west-2.elasticbeanstalk.com/api/v1/variables/",
+            "baseURL":"http://stag.p3htji6rui.eu-west-2.elasticbeanstalk.com/api/v1/micro-bit/variables/",
             "microbitQueryString":"/%endpoint%/",
             "endpoint":{
                 "shareData":{
