@@ -18,6 +18,7 @@ PKG_ENERGY = "energy"
 PKG_CARBON = "carbon"
 PKG_INIT= "init"
 PKG_SHARE = "share"
+PKG_ISS = "iss"
 
 PERSIST_FILE= "DataStore.txt"
 
@@ -234,6 +235,26 @@ class RequestHandler:
             self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
                
+        
+        if part == PKG_ISS:
+            res = "OK"
+            print url[0]
+            try:
+                resp = requests.get(baseURL)
+                resJson = json.loads(resp.text)
+                print resJson
+                
+                if url[0] in resJson:
+                    res = str(resJson['value'])[:5]
+                
+            except requests.exceptions.RequestException as e:
+                print "Connection error: {}".format(e)
+                self.returnPacket.append("API CONNECTION ERROR")
+                return self.returnPacket.marshall(True)
+            
+            self.returnPacket.append(res)
+            return self.returnPacket.marshall(True)
+        
         
         if part == PKG_INIT :
             res = "OK"
