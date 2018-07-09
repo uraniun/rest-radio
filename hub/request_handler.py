@@ -18,6 +18,7 @@ PKG_ENERGY = "energy"
 PKG_CARBON = "carbon"
 PKG_INIT= "init"
 PKG_SHARE = "share"
+PKG_ISS = "iss"
 
 PERSIST_FILE= "DataStore.txt"
 
@@ -42,7 +43,7 @@ class RequestHandler:
             PI_HEADER['pi-id'] = self.PI_ID['piId']
         else:
             self.PI_ID = PI_ID
-        #print self.PI_ID
+        print self.PI_ID
 
     """
     Recursively traverse a python json structure given a dot separated path. Array indices also work here.
@@ -234,6 +235,35 @@ class RequestHandler:
             self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
                
+        
+        if part == PKG_ISS:
+            res = "OK"
+            print url[0]
+            try:
+                resp = requests.get(baseURL)
+                resJson = json.loads(resp.text)
+                print resJson
+                if url[0] == "location":
+                    res = "Long:" + str(round(resJson['longitude'],4 ))+ ",Lati:" + str(round(resJson['latitude'],4 ))
+                elif url[0] == "solarlocation":
+                    res = "Long:" + str(round(resJson['solar_lon'],4 )) + ",Lati:" + str(round(resJson['solar_lat'],4 ))
+                elif url[0] == "velocity":
+                    res = int(round(resJson[url[0]],2))
+                elif url[0] == "altitude":
+                    res = int(round(resJson[url[0]],2))
+                elif url[0] == "daynum":
+                    res = int(round(resJson[url[0]],2))
+                elif url[0] in resJson:
+                    res = resJson[url[0]]
+                
+            except requests.exceptions.RequestException as e:
+                print "Connection error: {}".format(e)
+                self.returnPacket.append("API CONNECTION ERROR")
+                return self.returnPacket.marshall(True)
+            
+            self.returnPacket.append(res)
+            return self.returnPacket.marshall(True)
+        
         
         if part == PKG_INIT :
             res = "OK"
