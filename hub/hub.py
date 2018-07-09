@@ -1,4 +1,4 @@
-import sys, struct, json, re
+import sys, struct, json, re, pickle
 from auto_detector import auto_detect_microbit
 from radio_packet import RadioPacket
 from request_handler import RequestHandler
@@ -20,9 +20,11 @@ hub_variables = {
     }
 }
 
-auto_detect = True
+
+
+auto_detect = False
 # if auto-detect is False, this path will be used.
-selected = "/dev/cu.usbmodem1462"
+selected = "/dev/ttyACM0"
 
 if auto_detect:
     selected = auto_detect_microbit()
@@ -30,14 +32,13 @@ if auto_detect:
     if selected is None:
         raise Exception("No Bridge Detected")
 
-translations = open("./translations.json")
-translations = json.load(translations)
 
-cloud_variable_ep = CloudVariableEp(hub_variables)
+
+#cloud_variable_ep = CloudVariableEp(hub_variables)
 
 #this class can be used to poll an endpoint, I didn't find a real use for it.
 # ep_poller = EndpointPoller(translations, hub_variables)
-
+    
 serial_handler = SerialHandler(selected)
 
 # while true swap between polling EPs and receiving / sending.
@@ -46,15 +47,17 @@ while(True):
     # if the bridged micro:bit has sent us data, process
     if serial_handler.buffered() > 0:
         rPacket = RadioPacket(serial_handler.read_packet())
-        requestHandler = RequestHandler(rPacket,translations, hub_variables, cloud_variable_ep)
+        translationsFile = open("./translations.json")
+        translations = json.load(translationsFile)
+        requestHandler = RequestHandler(rPacket,translations, hub_variables, None)
         bytes = requestHandler.handleRequest()
         serial_handler.write_packet(bytes)
-    else:
+ #   else:
     # otherwise check if our asynchronous socket io ep has packets to transmit.
-        bytes = cloud_variable_ep.drain()
+  #      bytes = cloud_variable_ep.drain()
 
-        if len(bytes) > 0:
-            serial_handler.write_packet(bytes)
+   #     if len(bytes) > 0:
+    #        serial_handler.write_packet(bytes)
 
     # prevent burning the processor :)
     sleep(0.01)

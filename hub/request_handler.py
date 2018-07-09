@@ -1,7 +1,8 @@
 from radio_packet import RadioPacket
-import re, requests,urllib,json
+import re, requests,urllib,json, pickle
 
 from utils import hub_regexp
+from pathlib import Path
 
 """
 A class that handles two types of micro:bit request:
@@ -9,6 +10,21 @@ A class that handles two types of micro:bit request:
 (1) A REST request, which always starts with a query string, parameters following in the main body of the packet. These requests conventionally talk to a REST endpoint
 (2) A Cloud Variable request, which shares a variable to a rest endpoint. Cloud variables have a namespace hash, a variable name hash, and a string value.
 """
+
+# CONSTANSTS DEFINATIONS
+PKG_WEATHER = "weather"
+PKG_IOT = "iot"
+PKG_ENERGY = "energy"
+PKG_CARBON = "carbon"
+PKG_INIT= "init"
+PKG_SHARE = "share"
+
+PERSIST_FILE= "DataStore.txt"
+
+PI_ID = {'piId':None, 'schoolId': None}
+
+PI_HEADER = {'school-id': None, 'pi-id': None}
+
 class RequestHandler:
 
     def __init__(self, rPacket, translations, hub_variables, cloud_ep):
@@ -17,6 +33,16 @@ class RequestHandler:
         self.translations = translations
         self.cloud_ep = cloud_ep
         self.returnPacket = RadioPacket(rPacket)
+        file = Path(PERSIST_FILE)
+        if file.is_file():
+            file = open(PERSIST_FILE,'r')
+            self.PI_ID = pickle.load(file)
+            file.close()
+            PI_HEADER['school-id'] = self.PI_ID['schoolId']
+            PI_HEADER['pi-id'] = self.PI_ID['piId']
+        else:
+            self.PI_ID = PI_ID
+        #print self.PI_ID
 
     """
     Recursively traverse a python json structure given a dot separated path. Array indices also work here.
@@ -119,17 +145,204 @@ class RequestHandler:
 
         return out
 
-    def processRESTRequest(self, url, request_type, translation):
+    def processRESTRequest(self, url, request_type, translation,part):
         operation = translation[request_type]
-        baseURL = operation["baseURL"]
-        queryObject = operation["queryObject"]
+	if "baseURL" in operation:
+            baseURL = operation["baseURL"]
+        
         urlFormat = [x for x in operation["microbitQueryString"].split("/") if x]
+        
+        #print "baseURL"
+        #print baseURL
+        
+        if part == PKG_CARBON :
+            res = 'OK'
+            #print "Handle carbon package here"
+            #print "method url"
+            #print url
+            if url[0] == "index":
+                URLreq = baseURL + "intensity"
+                try:
+                    r = requests.get(URLreq)
+                except requests.exceptions.RequestException as e:
+                    print "Connection error: {}".format(e)
+                    self.returnPacket.append("API CONNECTION ERROR")
+                    return self.returnPacket.marshall(True)
+                response = json.loads(r.text)
+                print response['data'][0]['intensity'][url[0]]
+                res = response['data'][0]['intensity'][url[0]]
+                
+            if url[0] == "value":
+                URLreq = baseURL + "intensity"
+                try:
+                    r = requests.get(URLreq)
+                except requests.exceptions.RequestException as e:
+                    print "Connection error: {}".format(e)
+                    self.returnPacket.append("API CONNECTION ERROR")
+                    return self.returnPacket.marshall(True)
+                response = json.loads(r.text)
+                if response['data'][0]['intensity']['actual'] is not None:
+                    res = str(response['data'][0]['intensity']['actual'])
+                else:
+                    res = str(response['data'][0]['intensity']['forecast'])
+                
+            
+            if url[0] == 'genmix':
+                URLreq = baseURL + "generation"
+                try:
+                    r = requests.get(URLreq)
+                except requests.exceptions.RequestException as e:
+                    print "Connection error: {}".format(e)
+                    self.returnPacket.append("API CONNECTION ERROR")
+                    return self.returnPacket.marshall(True)    
+                response = json.loads(r.text)
+                genmix = response['data']['generationmix']
+                for gendata in genmix:
+                    if gendata['fuel'] == url[1]:
+                        res = str(gendata['perc'])
+                        break
+            
+            print res
+            self.returnPacket.append(res)
+            return self.returnPacket.marshall(True)
+                 
+        
+        if part == PKG_ENERGY :
+            res = "OK"
+            print "Handle energy package here"
+            print "method url"
+            print url
+            if url[0] == "energyLevel":
+                if url[1] == "0":
+                    URLreq = baseURL + "electricity/123"
+                elif url[1] == "1":
+                    URLreq = baseURL + "gas/123"
+                else:
+                    URLreq = baseURL + "solar/asdf"
+            try:
+                resp = requests.get(URLreq)
+                resJson = json.loads(resp.text)
+                
+                if 'value' in resJson:
+                    res = str(resJson['value'])[:5]
+                
+            except requests.exceptions.RequestException as e:
+                print "Connection error: {}".format(e)
+                self.returnPacket.append("API CONNECTION ERROR")
+                return self.returnPacket.marshall(True)
+            
+            self.returnPacket.append(res)
+            return self.returnPacket.marshall(True)
+               
+        
+        if part == PKG_INIT :
+            res = "OK"
+            #print "Handle Init package here"
+            #print "method url"
+            #print url
+            #print PI_ID
+            id = self.rPacket.get(1)
+            if url[0] == "piId" or url[0] == "schoolId":
+                if self.PI_ID[url[0]] is None:
+                    self.PI_ID[url[0]] =  id
+                    file = open(PERSIST_FILE,'w')
+                    pickle.dump(self.PI_ID,file)
+                    file.close()
+                    print "OK"
+                else:
+                    res = self.PI_ID[url[0]]
+                    print "Not OK"
+            #print PI_ID[url[0]]
+            self.returnPacket.append(res)
+            return self.returnPacket.marshall(True)
+        
+        
+        
+        if part == PKG_SHARE:
+            res = "OK"
+            if PI_HEADER['school-id'] == None or PI_HEADER['pi-id'] == None:
+                print "Check headers"
+                print PI_HEADER
+            print "Handle share package here"
+            print "method url"
+            print url
+            
+            if url[0] == "fetchData":
+                URLreq = baseURL + url[1]
+                try:
+                    
+                    resp = requests.get(URLreq,headers=PI_HEADER)
+                
+                except requests.exceptions.RequestException as e:
+                    print "Connection error: {}".format(e)
+                    self.returnPacket.append("API CONNECTION ERROR")
+                    return self.returnPacket.marshall(True)
+                #print URLreq
+                resJson = json.loads(resp.text)
+                print resJson
+                if 'value' in resJson:
+                    res = resJson['value']
+                else:
+                    res = "NOT FOUND"
 
-        # map micro:bit query string to variables
+            if url[0] == "shareData":
+                jsonData={'shared_with': 'SCHOOL', 'value': '0'}
+                jsonData['value'] = self.rPacket.get(1)
+                #jsonData['value'] = jsonData['description']
+                name = self.rPacket.get(2)
+                URLreq = baseURL +  name + "/"
+                varType = self.rPacket.get(2)
+                if varType == 0:
+                    jsonData['shared_with'] = 'ALL'
+                else:
+                    jsonData['shared_with'] = 'SCHOOL'
+                print jsonData
+                try:
+                    resp = requests.post(URLreq,headers=PI_HEADER,data=jsonData)
+                except requests.exceptions.RequestException as e:
+                    print "Connection error: {}".format(e)
+                    self.returnPacket.append("API CONNECTION ERROR")
+                    return self.returnPacket.marshall(True)
+
+            print resp
+            self.returnPacket.append(res)
+            return self.returnPacket.marshall(True)
+        
+         # map micro:bit query string to variables
         out = self.mapQueryString(url,urlFormat)
+        
+        #print "out maping"
+        #print str(out)
+        
+        #print urlFormat
+                
+        auth_token ='ddca3062-11ff-4116-87dc-36da9f01afe6'
+        hed = {'Authorization': 'Bearer ' + auth_token}
+        dataOn = {"commands":[{"component":"main","capability": "switch", "command":"on"}]}
+        dataOff = {"commands":[{"component":"main","capability": "switch", "command":"off"}]}
+    
+        if part == PKG_IOT :
+            
+            baseURL = "https://api.smartthings.com/v1/devices/1439773a-c144-41cd-9c5d-d1b03d3fe0a1/commands"
+            
+            data1 = self.rPacket.get(1)
+            data2 = self.rPacket.get(2)
+            
+            try:
+                if data2 == 1:
+                    requests.post(baseURL, json=dataOn,headers=hed)
+                else:
+                    requests.post(baseURL, json=dataOff,headers=hed)
+                    
+            except requests.exceptions.RequestException as e:
+                print "Connection error: {}".format(e)
+                self.returnPacket.append("API CONNECTION ERROR")
+                return self.returnPacket.marshall(True)
+        
+            self.returnPacket.append("OK")
+            return self.returnPacket.marshall(True)
 
-        print str(out)
-
+       
         # if no endpoint is specified, set a default key value of none
         if out["endpoint"] is None:
             out["endpoint"] = "none"
@@ -145,6 +358,8 @@ class RequestHandler:
             out = self.__join_dicts(out, self.extractFurtherObjects(1, endpoint["parameters"]))
 
         regexStrings = {}
+        
+        queryObject = operation["queryObject"]
 
         # for each query field in the queryobject extract the %variable_name% pattern.
         for param in queryObject:
@@ -160,6 +375,7 @@ class RequestHandler:
             # set the corresponding value in the out obj
             out[param] = p
 
+        
         # to simplify code, lets lump the base url (that may require regex'ing) into the queryobj
         regexStrings["baseURL"] = re.findall(hub_regexp, baseURL)
         queryObject["baseURL"] = baseURL
@@ -187,15 +403,23 @@ class RequestHandler:
                 queryObject[regExp] = queryObject[regExp].replace(match,str(value))
 
         print str(queryObject)
-
+        
+        
         # remove our now regexp'd baseURL from the query object
         baseURL = queryObject["baseURL"]
         del queryObject["baseURL"]
 
-        if request_type == "GET":
-            r = requests.get(baseURL, params= queryObject)
-        elif request_type == "POST":
-            r = requests.post(baseURL, data= queryObject)
+        try:
+            
+            if request_type == "GET":
+                r = requests.get(baseURL, params= queryObject)
+            elif request_type == "POST":
+                r = requests.post(baseURL, data= queryObject)
+        
+        except requests.exceptions.RequestException as e:
+            print "Connection error: {}".format(e)
+            self.returnPacket.append("API CONNECTION ERROR")
+            return self.returnPacket.marshall(True)
 
         if "jsonPath" in endpoint.keys():
             path = [x for x in endpoint["jsonPath"].split(".") if x]
@@ -210,8 +434,9 @@ class RequestHandler:
 
             for ret in returnVariables:
                 print jsonObj
-                print jsonObj[ret["name"]]
-                self.returnPacket.append(jsonObj[ret["name"]])
+		if ret["name"] in jsonObj:
+                    print jsonObj[ret["name"]]
+                    self.returnPacket.append(str(jsonObj[ret["name"]]))
 
 
         return self.returnPacket.marshall(True)
@@ -220,10 +445,20 @@ class RequestHandler:
 
         # every rest request should have the URL as the first item.
         url = self.rPacket.get(0)
+        
+        #print "url"
+        
+	#print url
+	
+	
+	
+	
 
         pieces = [x for x in url.split("/") if x is not '']
-
-        print pieces
+        
+        #print "pieces"
+        
+        #print pieces
 
         part, rest = pieces[0],pieces[1:]
 
@@ -237,7 +472,7 @@ class RequestHandler:
         if self.rPacket.request_type == RadioPacket.REQUEST_TYPE_POST_REQUEST:
             request_type = "POST"
 
-        return self.processRESTRequest(rest, request_type, translation)
+        return self.processRESTRequest(rest, request_type, translation,part)
 
     def handleCloudVariable(self):
         namespaceHash = self.rPacket.get(0)
