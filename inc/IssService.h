@@ -21,9 +21,9 @@ class IssService : public MicroBitComponent
     ManagedString getName(ManagedString endpoint);
     ManagedString getAltitude(ManagedString endpoint);
     ManagedString getSolarlocation(ManagedString endpoint);
-    ManagedString getDaynumber(ManagedString endpoint);
+    ManagedString getVisibility(ManagedString endpoint);
+    ManagedString getDaynum(ManagedString endpoint);
     ManagedString getLocation(ManagedString endpoint);
-    ManagedString getVisability(ManagedString endpoint);
     ManagedString getVelocity(ManagedString endpoint);
     ManagedString getId(ManagedString endpoint);
 

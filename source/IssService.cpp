@@ -22,15 +22,15 @@ ManagedString IssService::getSolarlocation(ManagedString endpoint) {
     DynamicType res = radio.cloud.rest.getRequest("/iss/" + endpoint + "/");
     return res.getString(0);
 }
-ManagedString IssService::getDaynumber(ManagedString endpoint) {
+ManagedString IssService::getVisibility(ManagedString endpoint) {
+    DynamicType res = radio.cloud.rest.getRequest("/iss/" + endpoint + "/");
+    return res.getString(0);
+}
+ManagedString IssService::getDaynum(ManagedString endpoint) {
     DynamicType res = radio.cloud.rest.getRequest("/iss/" + endpoint + "/");
     return res.getString(0);
 }
 ManagedString IssService::getLocation(ManagedString endpoint) {
-    DynamicType res = radio.cloud.rest.getRequest("/iss/" + endpoint + "/");
-    return res.getString(0);
-}
-ManagedString IssService::getVisability(ManagedString endpoint) {
     DynamicType res = radio.cloud.rest.getRequest("/iss/" + endpoint + "/");
     return res.getString(0);
 }
