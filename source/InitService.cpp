@@ -10,6 +10,10 @@ void InitService::idleTick()
     
 }
 
+int InitService::setReset() {
+    DynamicType res = radio.cloud.rest.postRequest("/init/reset/", t);
+    return res.getStatus();
+}
 int InitService::setSchoolId(ManagedString schoolid) {
     DynamicType t;
     t.appendString(schoolid);

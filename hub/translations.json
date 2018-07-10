@@ -316,6 +316,10 @@
                             "type":"string"
                         }
                     ]
+                },
+                "reset":{
+                    "parameters":[
+                    ]
                 }
             }
         }
