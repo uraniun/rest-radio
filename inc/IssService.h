@@ -19,13 +19,13 @@ class IssService : public MicroBitComponent
     IssService(Radio& r);
 
     ManagedString getName(ManagedString endpoint);
-    ManagedString getAltitude(ManagedString endpoint);
+    int getAltitude(ManagedString endpoint);
     ManagedString getSolarlocation(ManagedString endpoint);
-    ManagedString getDaynumber(ManagedString endpoint);
+    ManagedString getVisibility(ManagedString endpoint);
+    int getDaynum(ManagedString endpoint);
     ManagedString getLocation(ManagedString endpoint);
-    ManagedString getVisability(ManagedString endpoint);
-    ManagedString getVelocity(ManagedString endpoint);
-    ManagedString getId(ManagedString endpoint);
+    int getVelocity(ManagedString endpoint);
+    int getId(ManagedString endpoint);
 
     
 };

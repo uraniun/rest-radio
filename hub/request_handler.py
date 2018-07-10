@@ -1,5 +1,6 @@
 from radio_packet import RadioPacket
 import re, requests,urllib,json, pickle, os
+import datetime
 
 from utils import hub_regexp
 from pathlib import Path
@@ -248,9 +249,9 @@ class RequestHandler:
                 resJson = json.loads(resp.text)
                 #print resJson
                 if url[0] == "location":
-                    res = "Long:" + str(round(resJson['longitude'],4 ))+ ",Lati:" + str(round(resJson['latitude'],4 ))
+                    res = "Lat:" + str(round(resJson['latitude'],4 )) + ", Lon:" + str(round(resJson['longitude'],4 ))
                 elif url[0] == "solarlocation":
-                    res = "Long:" + str(round(resJson['solar_lon'],4 )) + ",Lati:" + str(round(resJson['solar_lat'],4 ))
+                    res = "Lat:" + str(round(resJson['solar_lat'],4 )) + ", Lon:" + str(round(resJson['solar_lon'],4 ))
                 elif url[0] == "velocity":
                     res = int(round(resJson[url[0]],2))
                 elif url[0] == "altitude":
@@ -489,10 +490,11 @@ class RequestHandler:
         
         #print "url"
         
-	#print url
-	
-	
-	
+	    #print url
+
+        now = datetime.datetime.now()
+        print "------------------Time:", now.hour, now.minute, now.second	
+		
 	
 
         pieces = [x for x in url.split("/") if x is not '']
