@@ -245,9 +245,9 @@ class RequestHandler:
                 resJson = json.loads(resp.text)
                 print resJson
                 if url[0] == "location":
-                    res = "Long:" + str(round(resJson['longitude'],4 ))+ ",Lati:" + str(round(resJson['latitude'],4 ))
+                    res = "Lat:" + str(round(resJson['latitude'],4 )) + ", Lon:" + str(round(resJson['longitude'],4 ))
                 elif url[0] == "solarlocation":
-                    res = "Long:" + str(round(resJson['solar_lon'],4 )) + ",Lati:" + str(round(resJson['solar_lat'],4 ))
+                    res = "Lat:" + str(round(resJson['solar_lat'],4 )) + ", Lon:" + str(round(resJson['solar_lon'],4 ))
                 elif url[0] == "velocity":
                     res = int(round(resJson[url[0]],2))
                 elif url[0] == "altitude":
