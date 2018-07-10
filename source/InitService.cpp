@@ -10,7 +10,9 @@ void InitService::idleTick()
     
 }
 
-int InitService::setReset() {
+int InitService::setReset(ManagedString reset) {
+    DynamicType t;
+    t.appendString(reset);
     DynamicType res = radio.cloud.rest.postRequest("/init/reset/", t);
     return res.getStatus();
 }

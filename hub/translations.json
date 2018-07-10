@@ -319,6 +319,10 @@
                 },
                 "reset":{
                     "parameters":[
+                        {
+                            "name":"reset",
+                            "type":"string"
+                        }
                     ]
                 }
             }

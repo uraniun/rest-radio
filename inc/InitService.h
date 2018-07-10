@@ -18,7 +18,7 @@ class InitService : public MicroBitComponent
 
     InitService(Radio& r);
 
-    int setReset();
+    int setReset(ManagedString reset);
     int setSchoolId(ManagedString schoolid);
     int setPiId(ManagedString piid);
 
