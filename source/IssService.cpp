@@ -14,9 +14,9 @@ ManagedString IssService::getName(ManagedString endpoint) {
     DynamicType res = radio.cloud.rest.getRequest("/iss/" + endpoint + "/");
     return res.getString(0);
 }
-ManagedString IssService::getAltitude(ManagedString endpoint) {
+int IssService::getAltitude(ManagedString endpoint) {
     DynamicType res = radio.cloud.rest.getRequest("/iss/" + endpoint + "/");
-    return res.getString(0);
+    return res.getInteger(0);
 }
 ManagedString IssService::getSolarlocation(ManagedString endpoint) {
     DynamicType res = radio.cloud.rest.getRequest("/iss/" + endpoint + "/");
@@ -26,19 +26,19 @@ ManagedString IssService::getVisibility(ManagedString endpoint) {
     DynamicType res = radio.cloud.rest.getRequest("/iss/" + endpoint + "/");
     return res.getString(0);
 }
-ManagedString IssService::getDaynum(ManagedString endpoint) {
+int IssService::getDaynum(ManagedString endpoint) {
     DynamicType res = radio.cloud.rest.getRequest("/iss/" + endpoint + "/");
-    return res.getString(0);
+    return res.getInteger(0);
 }
 ManagedString IssService::getLocation(ManagedString endpoint) {
     DynamicType res = radio.cloud.rest.getRequest("/iss/" + endpoint + "/");
     return res.getString(0);
 }
-ManagedString IssService::getVelocity(ManagedString endpoint) {
+int IssService::getVelocity(ManagedString endpoint) {
     DynamicType res = radio.cloud.rest.getRequest("/iss/" + endpoint + "/");
-    return res.getString(0);
+    return res.getInteger(0);
 }
-ManagedString IssService::getId(ManagedString endpoint) {
+int IssService::getId(ManagedString endpoint) {
     DynamicType res = radio.cloud.rest.getRequest("/iss/" + endpoint + "/");
-    return res.getString(0);
+    return res.getInteger(0);
 }

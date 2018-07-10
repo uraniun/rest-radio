@@ -460,7 +460,7 @@
                 "id":{
                     "returns":[
                         {
-                            "type":"string",
+                            "type":"int",
                             "name":"data"
                         }
                     ]
@@ -484,7 +484,7 @@
                 "velocity":{
                     "returns":[
                         {
-                            "type":"string",
+                            "type":"int",
                             "name":"data"
                         }
                     ]
@@ -492,7 +492,7 @@
                 "altitude":{
                     "returns":[
                         {
-                            "type":"string",
+                            "type":"int",
                             "name":"data"
                         }
                     ]
@@ -508,7 +508,7 @@
                 "daynum":{
                     "returns":[
                         {
-                            "type":"string",
+                            "type":"int",
                             "name":"data"
                         }
                     ]
