@@ -307,6 +307,12 @@
                             "name":"schoolid",
                             "type":"string"
                         }
+                    ],
+                    "returns":[
+                        {
+                            "type":"string",
+                            "name":"result"
+                        }
                     ]
                 },
                 "piId":{
@@ -314,6 +320,26 @@
                         {
                             "name":"piid",
                             "type":"string"
+                        }
+                    ],
+                    "returns":[
+                        {
+                            "type":"string",
+                            "name":"result"
+                        }
+                    ]
+                },
+                "reset":{
+                    "parameters":[
+                        {
+                            "name":"reset",
+                            "type":"string"
+                        }
+                    ],
+                    "returns":[
+                        {
+                            "type":"string",
+                            "name":"result"
                         }
                     ]
                 }
@@ -434,7 +460,7 @@
                 "id":{
                     "returns":[
                         {
-                            "type":"string",
+                            "type":"int",
                             "name":"data"
                         }
                     ]
@@ -458,7 +484,7 @@
                 "velocity":{
                     "returns":[
                         {
-                            "type":"string",
+                            "type":"int",
                             "name":"data"
                         }
                     ]
@@ -466,7 +492,7 @@
                 "altitude":{
                     "returns":[
                         {
-                            "type":"string",
+                            "type":"int",
                             "name":"data"
                         }
                     ]
@@ -482,7 +508,7 @@
                 "daynum":{
                     "returns":[
                         {
-                            "type":"string",
+                            "type":"int",
                             "name":"data"
                         }
                     ]
