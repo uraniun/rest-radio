@@ -142,7 +142,7 @@
     "iot":{
         "GET" : {
             "apiPrefix":"get",
-            "baseURL":"http://global-logic.com/api/v1/devices/",
+            "baseURL":"https://energyinschools.co.uk/api/v1/devices/",
             "microbitQueryString":"/%endpoint%/%unit?%",
             "compulsoryParameters":[
                 {
@@ -195,7 +195,7 @@
         },
         "POST" : {
             "apiPrefix":"set",
-            "baseURL":"http://global-logic.com/api/v1/devices/",
+            "baseURL":"https://energyinschools.co.uk/api/v1/devices/",
             "microbitQueryString":"/%endpoint%/",
             "endpoint":{
                 "bulbState":{
@@ -276,7 +276,7 @@
     "energy":{
         "GET" : {
             "apiPrefix":"get",
-            "baseURL":"http://stag.p3htji6rui.eu-west-2.elasticbeanstalk.com/api/v1/micro-bit/energy/",
+            "baseURL":"https://energyinschools.co.uk/api/v1/micro-bit/energy/",
             "microbitQueryString":"/%endpoint%/%unit?%",
             "compulsoryParameters":[
                 {
@@ -388,7 +388,7 @@
     "share":{
         "GET" : {
             "apiPrefix":"get",
-            "baseURL":"http://stag.p3htji6rui.eu-west-2.elasticbeanstalk.com/api/v1/micro-bit/variables/",
+            "baseURL":"https://energyinschools.co.uk/api/v1/micro-bit/variables/",
             "microbitQueryString":"/%endpoint%/%unit?%",
             "compulsoryParameters":[
                 {
@@ -409,7 +409,7 @@
         },
         "POST" : {
             "apiPrefix":"set",
-            "baseURL":"http://stag.p3htji6rui.eu-west-2.elasticbeanstalk.com/api/v1/micro-bit/variables/",
+            "baseURL":"https://energyinschools.co.uk/api/v1/micro-bit/variables/",
             "microbitQueryString":"/%endpoint%/",
             "endpoint":{
                 "shareData":{
