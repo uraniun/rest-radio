@@ -257,7 +257,11 @@ class RequestHandler:
                 elif url[0] == "altitude":
                     res = int(round(resJson[url[0]],2))
                 elif url[0] == "daynum":
-                    res = int(round(resJson[url[0]],2))
+                    epoch = datetime.datetime.utcfromtimestamp(0)
+                    today = datetime.datetime.today()
+                    d = today - epoch
+                    res = d.days
+                    #res = int(round(resJson[url[0]],2))
                 elif url[0] in resJson:
                     res = resJson[url[0]]
                 
