@@ -1,5 +1,5 @@
 from radio_packet import RadioPacket
-import re, requests,urllib,json, pickle
+import re, requests,urllib,json, pickle, os
 import datetime
 
 from utils import hub_regexp
@@ -43,8 +43,10 @@ class RequestHandler:
             PI_HEADER['school-id'] = self.PI_ID['schoolId']
             PI_HEADER['pi-id'] = self.PI_ID['piId']
         else:
+            PI_ID['schoolId'] = PI_HEADER['school-id'] = None
+            PI_ID['piId'] = PI_HEADER['pi-id'] = None
             self.PI_ID = PI_ID
-        print self.PI_ID
+        #print self.PI_ID
 
     """
     Recursively traverse a python json structure given a dot separated path. Array indices also work here.
@@ -171,7 +173,7 @@ class RequestHandler:
                     self.returnPacket.append("API CONNECTION ERROR")
                     return self.returnPacket.marshall(True)
                 response = json.loads(r.text)
-                print response['data'][0]['intensity'][url[0]]
+                #print response['data'][0]['intensity'][url[0]]
                 res = response['data'][0]['intensity'][url[0]]
                 
             if url[0] == "value":
@@ -204,16 +206,16 @@ class RequestHandler:
                         res = str(gendata['perc'])
                         break
             
-            print res
+            #print res
             self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
                  
         
         if part == PKG_ENERGY :
             res = "OK"
-            print "Handle energy package here"
-            print "method url"
-            print url
+            #print "Handle energy package here"
+            #print "method url"
+            #print url
             if url[0] == "energyLevel":
                 if url[1] == "0":
                     URLreq = baseURL + "electricity/123"
@@ -222,12 +224,14 @@ class RequestHandler:
                 else:
                     URLreq = baseURL + "solar/asdf"
             try:
-                resp = requests.get(URLreq)
+                resp = requests.get(URLreq,headers=PI_HEADER)
                 resJson = json.loads(resp.text)
                 
                 if 'value' in resJson:
                     res = str(resJson['value'])[:5]
-                
+                else:
+                    res = resJson['detail']
+                    
             except requests.exceptions.RequestException as e:
                 print "Connection error: {}".format(e)
                 self.returnPacket.append("API CONNECTION ERROR")
@@ -239,11 +243,11 @@ class RequestHandler:
         
         if part == PKG_ISS:
             res = "OK"
-            print url[0]
+            #print url[0]
             try:
                 resp = requests.get(baseURL)
                 resJson = json.loads(resp.text)
-                print resJson
+                #print resJson
                 if url[0] == "location":
                     res = "Lat:" + str(round(resJson['latitude'],4 )) + ", Lon:" + str(round(resJson['longitude'],4 ))
                 elif url[0] == "solarlocation":
@@ -273,7 +277,14 @@ class RequestHandler:
             #print url
             #print PI_ID
             id = self.rPacket.get(1)
-            if url[0] == "piId" or url[0] == "schoolId":
+            if id == "reset":
+                if os.path.isfile(PERSIST_FILE):
+                    os.remove(PERSIST_FILE)
+                    #print "done"
+                #else:
+                    #print "not done"
+                    
+            elif url[0] == "piId" or url[0] == "schoolId":
                 if self.PI_ID[url[0]] is None:
                     self.PI_ID[url[0]] =  id
                     file = open(PERSIST_FILE,'w')
@@ -294,9 +305,9 @@ class RequestHandler:
             if PI_HEADER['school-id'] == None or PI_HEADER['pi-id'] == None:
                 print "Check headers"
                 print PI_HEADER
-            print "Handle share package here"
-            print "method url"
-            print url
+            #print "Handle share package here"
+            #print "method url"
+            #print url
             
             if url[0] == "fetchData":
                 URLreq = baseURL + url[1]
