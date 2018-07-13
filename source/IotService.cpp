@@ -24,6 +24,13 @@ ManagedString IotService::setBulbState(ManagedString bulbName, int state) {
     DynamicType res = radio.cloud.rest.postRequest("/iot/bulbState/", t);
     return res.getString(0);
 }
+ManagedString IotService::setBulbTemp(ManagedString bulbName, int colour) {
+    DynamicType t;
+    t.appendString(bulbName);
+    t.appendInteger(colour);
+    DynamicType res = radio.cloud.rest.postRequest("/iot/bulbTemp/", t);
+    return res.getString(0);
+}
 ManagedString IotService::setBulbVal(ManagedString bulbName, int level) {
     DynamicType t;
     t.appendString(bulbName);
@@ -38,15 +45,19 @@ ManagedString IotService::setBulbColour(ManagedString bulbName, int colour) {
     DynamicType res = radio.cloud.rest.postRequest("/iot/bulbColour/", t);
     return res.getString(0);
 }
-ManagedString IotService::getSwitchState(ManagedString endpoint) {
-    DynamicType res = radio.cloud.rest.getRequest("/iot/" + endpoint + "/");
-    return res.getString(0);
-}
 ManagedString IotService::getBulbState(ManagedString endpoint) {
     DynamicType res = radio.cloud.rest.getRequest("/iot/" + endpoint + "/");
     return res.getString(0);
 }
+ManagedString IotService::getBulbTemp(ManagedString endpoint) {
+    DynamicType res = radio.cloud.rest.getRequest("/iot/" + endpoint + "/");
+    return res.getString(0);
+}
 ManagedString IotService::getSensorState(ManagedString endpoint) {
+    DynamicType res = radio.cloud.rest.getRequest("/iot/" + endpoint + "/");
+    return res.getString(0);
+}
+ManagedString IotService::getSwitchState(ManagedString endpoint) {
     DynamicType res = radio.cloud.rest.getRequest("/iot/" + endpoint + "/");
     return res.getString(0);
 }

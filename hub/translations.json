@@ -175,6 +175,14 @@
                         }
                     ]
                 },
+                "bulbTemp":{
+                    "returns":[
+                        {
+                            "type":"string",
+                            "name":"status"
+                        }
+                    ]
+                },
                 "bulbColour":{
                     "returns":[
                         {
@@ -224,6 +232,24 @@
                         },
                         {
                             "name":"level",
+                            "type":"int"
+                        }
+                    ],
+                    "returns":[
+                        {
+                            "type":"string",
+                            "name":"status"
+                        }
+                    ]
+                },
+                "bulbTemp":{
+                    "parameters":[
+                        {
+                            "name":"bulbName",
+                            "type":"string"
+                        },
+                        {
+                            "name":"colour",
                             "type":"int"
                         }
                     ],

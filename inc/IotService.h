@@ -20,12 +20,14 @@ class IotService : public MicroBitComponent
 
     ManagedString setSwitchState(ManagedString switchName, int state);
     ManagedString setBulbState(ManagedString bulbName, int state);
+    ManagedString setBulbTemp(ManagedString bulbName, int colour);
     ManagedString setBulbVal(ManagedString bulbName, int level);
     ManagedString setBulbColour(ManagedString bulbName, int colour);
 
-    ManagedString getSwitchState(ManagedString endpoint);
     ManagedString getBulbState(ManagedString endpoint);
+    ManagedString getBulbTemp(ManagedString endpoint);
     ManagedString getSensorState(ManagedString endpoint);
+    ManagedString getSwitchState(ManagedString endpoint);
     ManagedString getBulbLevel(ManagedString endpoint);
     ManagedString getBulbColour(ManagedString endpoint);
 
