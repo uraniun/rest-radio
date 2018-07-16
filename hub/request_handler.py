@@ -46,7 +46,7 @@ class RequestHandler:
             PI_ID['schoolId'] = PI_HEADER['school-id'] = None
             PI_ID['piId'] = PI_HEADER['pi-id'] = None
             self.PI_ID = PI_ID
-        #print self.PI_ID
+        print PI_HEADER
 
     """
     Recursively traverse a python json structure given a dot separated path. Array indices also work here.
@@ -214,23 +214,29 @@ class RequestHandler:
         if part == PKG_ENERGY :
             res = "OK"
             #print "Handle energy package here"
-            #print "method url"
+            #print baseURL
             #print url
             if url[0] == "energyLevel":
                 if url[1] == "0":
-                    URLreq = baseURL + "electricity/123"
+                    URLreq = baseURL + "electricity/"
                 elif url[1] == "1":
-                    URLreq = baseURL + "gas/123"
-                else:
-                    URLreq = baseURL + "solar/asdf"
+                    URLreq = baseURL + "gas/"
+            
+            if url[2] == "local":
+                URLreq = URLreq + PI_HEADER['school-id']
+            else :
+                URLreq = URLreq + url[2]
+            
+            print URLreq
+            
             try:
                 resp = requests.get(URLreq,headers=PI_HEADER)
                 resJson = json.loads(resp.text)
                 
                 if 'value' in resJson:
-                    res = str(resJson['value'])[:5]
+                    res = str(resJson['value'])
                 else:
-                    res = resJson['detail']
+                    res = resJson
                     
             except requests.exceptions.RequestException as e:
                 print "Connection error: {}".format(e)
@@ -405,7 +411,8 @@ class RequestHandler:
 
         regexStrings = {}
         
-        queryObject = operation["queryObject"]
+        if "queryObject" in operation:
+            queryObject = operation["queryObject"]
 
         # for each query field in the queryobject extract the %variable_name% pattern.
         for param in queryObject:
