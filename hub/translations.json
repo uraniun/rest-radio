@@ -142,7 +142,7 @@
     "iot":{
         "GET" : {
             "apiPrefix":"get",
-            "baseURL":"https://energyinschools.co.uk/api/v1/devices/",
+            "baseURL":"https://energyinschools.co.uk/api/v1/micro-bit/devices/",
             "microbitQueryString":"/%endpoint%/%unit?%",
             "compulsoryParameters":[
                 {
@@ -203,7 +203,7 @@
         },
         "POST" : {
             "apiPrefix":"set",
-            "baseURL":"https://energyinschools.co.uk/api/v1/devices/",
+            "baseURL":"https://energyinschools.co.uk/api/v1/micro-bit/devices/",
             "microbitQueryString":"/%endpoint%/",
             "endpoint":{
                 "bulbState":{
