@@ -31,11 +31,11 @@ ManagedString IotService::setBulbTemp(ManagedString bulbName, int colour) {
     DynamicType res = radio.cloud.rest.postRequest("/iot/bulbTemp/", t);
     return res.getString(0);
 }
-ManagedString IotService::setBulbVal(ManagedString bulbName, int level) {
+ManagedString IotService::setBulbLevel(ManagedString bulbName, int level) {
     DynamicType t;
     t.appendString(bulbName);
     t.appendInteger(level);
-    DynamicType res = radio.cloud.rest.postRequest("/iot/bulbVal/", t);
+    DynamicType res = radio.cloud.rest.postRequest("/iot/bulbLevel/", t);
     return res.getString(0);
 }
 ManagedString IotService::setBulbColour(ManagedString bulbName, int colour) {

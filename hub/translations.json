@@ -224,7 +224,7 @@
                         }
                     ]
                 },
-                "bulbVal":{
+                "bulbLevel":{
                     "parameters":[
                         {
                             "name":"bulbName",
