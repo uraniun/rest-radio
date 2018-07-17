@@ -1,5 +1,10 @@
 from radio_packet import RadioPacket
-import re, requests,urllib,json, pickle, os
+import re
+import requests
+import urllib
+import json
+import pickle
+import os
 import datetime
 
 from utils import hub_regexp
@@ -17,15 +22,16 @@ PKG_WEATHER = "weather"
 PKG_IOT = "iot"
 PKG_ENERGY = "energy"
 PKG_CARBON = "carbon"
-PKG_INIT= "init"
+PKG_INIT = "init"
 PKG_SHARE = "share"
 PKG_ISS = "iss"
 
-PERSIST_FILE= "DataStore.txt"
+PERSIST_FILE = "DataStore.txt"
 
-PI_ID = {'piId':None, 'schoolId': None}
+PI_ID = {'piId': None, 'schoolId': None}
 
 PI_HEADER = {'school-id': None, 'pi-id': None}
+
 
 class RequestHandler:
 
@@ -37,7 +43,7 @@ class RequestHandler:
         self.returnPacket = RadioPacket(rPacket)
         file = Path(PERSIST_FILE)
         if file.is_file():
-            file = open(PERSIST_FILE,'r')
+            file = open(PERSIST_FILE, 'r')
             self.PI_ID = pickle.load(file)
             file.close()
             PI_HEADER['school-id'] = self.PI_ID['schoolId']
@@ -57,12 +63,13 @@ class RequestHandler:
 
     query.results.channel.item.forecast[0]
     """
+
     def __json_recursive_find__(self, parts, json):
         if parts == []:
             return json
 
         if len(parts) == 1:
-            head, rest = parts[0],[]
+            head, rest = parts[0], []
         else:
             head, rest = parts[0], parts[1:]
 
@@ -78,12 +85,13 @@ class RequestHandler:
             if head not in json.keys():
                 return {}
 
-        return self.__json_recursive_find__(rest,json[head])
+        return self.__json_recursive_find__(rest, json[head])
 
     """
     util to join two dicts
     """
-    def __join_dicts(self,dict1,dict2):
+
+    def __join_dicts(self, dict1, dict2):
         dict3 = dict1.copy()
         dict3.update(dict2)
         return dict3
@@ -93,6 +101,7 @@ class RequestHandler:
 
     Returns an object with params as keys, and values from the packet as values
     """
+
     def extractFurtherObjects(self, index, parameters):
 
         ret = {}
@@ -123,13 +132,14 @@ class RequestHandler:
     }
 
     """
+
     def mapQueryString(self, url, urlFormat):
-        part, rest = url[0],url[1:]
+        part, rest = url[0], url[1:]
         out = {}
 
         # map parts of the packet into the querystring first.
         for format in urlFormat:
-            name = re.search("%(.*)%",format)
+            name = re.search("%(.*)%", format)
             key = name.group(1)
 
             if key[-1] == "?":
@@ -149,17 +159,18 @@ class RequestHandler:
 
         return out
 
-    def processRESTRequest(self, url, request_type, translation,part):
+    def processRESTRequest(self, url, request_type, translation, part):
         operation = translation[request_type]
-	if "baseURL" in operation:
+        if "baseURL" in operation:
             baseURL = operation["baseURL"]
-        
-        urlFormat = [x for x in operation["microbitQueryString"].split("/") if x]
-        
+
+        urlFormat = [
+            x for x in operation["microbitQueryString"].split("/") if x]
+
         #print "baseURL"
         #print baseURL
-        
-        if part == PKG_CARBON :
+
+        if part == PKG_CARBON:
             res = 'OK'
             #print "Handle carbon package here"
             #print "method url"
@@ -175,7 +186,7 @@ class RequestHandler:
                 response = json.loads(r.text)
                 #print response['data'][0]['intensity'][url[0]]
                 res = response['data'][0]['intensity'][url[0]]
-                
+
             if url[0] == "value":
                 URLreq = baseURL + "intensity"
                 try:
@@ -189,8 +200,7 @@ class RequestHandler:
                     res = str(response['data'][0]['intensity']['actual'])
                 else:
                     res = str(response['data'][0]['intensity']['forecast'])
-                
-            
+
             if url[0] == 'genmix':
                 URLreq = baseURL + "generation"
                 try:
@@ -198,20 +208,19 @@ class RequestHandler:
                 except requests.exceptions.RequestException as e:
                     print "Connection error: {}".format(e)
                     self.returnPacket.append("API CONNECTION ERROR")
-                    return self.returnPacket.marshall(True)    
+                    return self.returnPacket.marshall(True)
                 response = json.loads(r.text)
                 genmix = response['data']['generationmix']
                 for gendata in genmix:
                     if gendata['fuel'] == url[1]:
                         res = str(gendata['perc'])
                         break
-            
+
             #print res
             self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
-                 
-        
-        if part == PKG_ENERGY :
+
+        if part == PKG_ENERGY:
             res = "OK"
             #print "Handle energy package here"
             #print baseURL
@@ -221,32 +230,31 @@ class RequestHandler:
                     URLreq = baseURL + "electricity/"
                 elif url[1] == "1":
                     URLreq = baseURL + "gas/"
-            
+
             if url[2] == "local":
                 URLreq = URLreq + PI_HEADER['school-id']
-            else :
+            else:
                 URLreq = URLreq + url[2]
-            
+
             print URLreq
-            
+
             try:
-                resp = requests.get(URLreq,headers=PI_HEADER)
+                resp = requests.get(URLreq, headers=PI_HEADER)
                 resJson = json.loads(resp.text)
-                
+
                 if 'value' in resJson:
                     res = str(resJson['value'])
                 else:
                     res = resJson
-                    
+
             except requests.exceptions.RequestException as e:
                 print "Connection error: {}".format(e)
                 self.returnPacket.append("API CONNECTION ERROR")
                 return self.returnPacket.marshall(True)
-            
+
             self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
-               
-        
+
         if part == PKG_ISS:
             res = "OK"
             #print url[0]
@@ -255,13 +263,17 @@ class RequestHandler:
                 resJson = json.loads(resp.text)
                 #print resJson
                 if url[0] == "location":
-                    res = "Lat:" + str(round(resJson['latitude'],4 )) + ", Lon:" + str(round(resJson['longitude'],4 ))
+                    res = "Lat:" + \
+                        str(round(resJson['latitude'], 4)) + \
+                        ", Lon:" + str(round(resJson['longitude'], 4))
                 elif url[0] == "solarlocation":
-                    res = "Lat:" + str(round(resJson['solar_lat'],4 )) + ", Lon:" + str(round(resJson['solar_lon'],4 ))
+                    res = "Lat:" + \
+                        str(round(resJson['solar_lat'], 4)) + \
+                        ", Lon:" + str(round(resJson['solar_lon'], 4))
                 elif url[0] == "velocity":
-                    res = int(round(resJson[url[0]],2))
+                    res = int(round(resJson[url[0]], 2))
                 elif url[0] == "altitude":
-                    res = int(round(resJson[url[0]],2))
+                    res = int(round(resJson[url[0]], 2))
                 elif url[0] == "daynum":
                     epoch = datetime.datetime.utcfromtimestamp(0)
                     today = datetime.datetime.today()
@@ -270,17 +282,16 @@ class RequestHandler:
                     #res = int(round(resJson[url[0]],2))
                 elif url[0] in resJson:
                     res = resJson[url[0]]
-                
+
             except requests.exceptions.RequestException as e:
                 print "Connection error: {}".format(e)
                 self.returnPacket.append("API CONNECTION ERROR")
                 return self.returnPacket.marshall(True)
-            
+
             self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
-        
-        
-        if part == PKG_INIT :
+
+        if part == PKG_INIT:
             res = "OK"
             #print "Handle Init package here"
             #print "method url"
@@ -291,14 +302,14 @@ class RequestHandler:
                 if os.path.isfile(PERSIST_FILE):
                     os.remove(PERSIST_FILE)
                     #print "done"
-                #else:
+                # else:
                     #print "not done"
-                    
+
             elif url[0] == "piId" or url[0] == "schoolId":
                 if self.PI_ID[url[0]] is None:
-                    self.PI_ID[url[0]] =  id
-                    file = open(PERSIST_FILE,'w')
-                    pickle.dump(self.PI_ID,file)
+                    self.PI_ID[url[0]] = id
+                    file = open(PERSIST_FILE, 'w')
+                    pickle.dump(self.PI_ID, file)
                     file.close()
                     print "OK"
                 else:
@@ -307,9 +318,7 @@ class RequestHandler:
             #print PI_ID[url[0]]
             self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
-        
-        
-        
+
         if part == PKG_SHARE:
             res = "OK"
             if PI_HEADER['school-id'] == None or PI_HEADER['pi-id'] == None:
@@ -318,13 +327,13 @@ class RequestHandler:
             #print "Handle share package here"
             #print "method url"
             #print url
-            
+
             if url[0] == "fetchData":
                 URLreq = baseURL + url[1]
                 try:
-                    
-                    resp = requests.get(URLreq,headers=PI_HEADER)
-                
+
+                    resp = requests.get(URLreq, headers=PI_HEADER)
+
                 except requests.exceptions.RequestException as e:
                     print "Connection error: {}".format(e)
                     self.returnPacket.append("API CONNECTION ERROR")
@@ -338,11 +347,11 @@ class RequestHandler:
                     res = "NOT FOUND"
 
             if url[0] == "shareData":
-                jsonData={'shared_with': 'SCHOOL', 'value': '0'}
+                jsonData = {'shared_with': 'SCHOOL', 'value': '0'}
                 jsonData['value'] = self.rPacket.get(1)
                 #jsonData['value'] = jsonData['description']
                 name = self.rPacket.get(2)
-                URLreq = baseURL +  name + "/"
+                URLreq = baseURL + name + "/"
                 varType = self.rPacket.get(2)
                 if varType == 0:
                     jsonData['shared_with'] = 'ALL'
@@ -350,7 +359,8 @@ class RequestHandler:
                     jsonData['shared_with'] = 'SCHOOL'
                 print jsonData
                 try:
-                    resp = requests.post(URLreq,headers=PI_HEADER,data=jsonData)
+                    resp = requests.post(
+                        URLreq, headers=PI_HEADER, data=jsonData)
                 except requests.exceptions.RequestException as e:
                     print "Connection error: {}".format(e)
                     self.returnPacket.append("API CONNECTION ERROR")
@@ -359,43 +369,42 @@ class RequestHandler:
             print resp
             self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
-        
+
          # map micro:bit query string to variables
-        out = self.mapQueryString(url,urlFormat)
-        
+        out = self.mapQueryString(url, urlFormat)
+
         #print "out maping"
         #print str(out)
-        
+
         #print urlFormat
-                
+
         # auth_token ='ddca3062-11ff-4116-87dc-36da9f01afe6'
         # hed = {'Authorization': 'Bearer ' + auth_token}
         # dataOn = {"commands":[{"component":"main","capability": "switch", "command":"on"}]}
         # dataOff = {"commands":[{"component":"main","capability": "switch", "command":"off"}]}
-    
+
         # if part == PKG_IOT :
-            
-            # baseURL = "https://api.smartthings.com/v1/devices/1439773a-c144-41cd-9c5d-d1b03d3fe0a1/commands"
-            
-            # data1 = self.rPacket.get(1)
-            # data2 = self.rPacket.get(2)
-            
-            # try:
-            #     if data2 == 1:
-            #         requests.post(baseURL, json=dataOn,headers=hed)
-            #     else:
-            #         requests.post(baseURL, json=dataOff,headers=hed)
-                    
-            # except requests.exceptions.RequestException as e:
-            #     print "Connection error: {}".format(e)
-            #     self.returnPacket.append("API CONNECTION ERROR")
-            #     return self.returnPacket.marshall(True)
-        
-            # self.returnPacket.append("OK")
-            # return self.returnPacket.marshall(True)
 
+        # baseURL = "https://api.smartthings.com/v1/devices/1439773a-c144-41cd-9c5d-d1b03d3fe0a1/commands"
 
-        if part == PKG_IOT :
+        # data1 = self.rPacket.get(1)
+        # data2 = self.rPacket.get(2)
+
+        # try:
+        #     if data2 == 1:
+        #         requests.post(baseURL, json=dataOn,headers=hed)
+        #     else:
+        #         requests.post(baseURL, json=dataOff,headers=hed)
+
+        # except requests.exceptions.RequestException as e:
+        #     print "Connection error: {}".format(e)
+        #     self.returnPacket.append("API CONNECTION ERROR")
+        #     return self.returnPacket.marshall(True)
+
+        # self.returnPacket.append("OK")
+        # return self.returnPacket.marshall(True)
+
+        if part == PKG_IOT:
             res = "OK"
             if PI_HEADER['school-id'] == None or PI_HEADER['pi-id'] == None:
                 print "Check headers"
@@ -410,14 +419,14 @@ class RequestHandler:
                 #     URLreq = URLreq + "/bulb"
                 elif url[0] == "switchState":
                     URLreq = URLreq + "/switch"
-                
+
                 URLreq = URLreq + "/status/"
 
                 try:
                     print "URLreq:", URLreq
 
-                    resp = requests.get(URLreq,headers=PI_HEADER)
-                
+                    resp = requests.get(URLreq, headers=PI_HEADER)
+
                 except requests.exceptions.RequestException as e:
                     print "Connection error: {}".format(e)
                     self.returnPacket.append("API CONNECTION ERROR")
@@ -430,8 +439,9 @@ class RequestHandler:
                 # print res
 
             elif request_type == "POST":
-                jsonData={'device':'switch', 'command':'Switch', 'value':'off'}
-                
+                jsonData = {'device': 'switch',
+                            'command': 'Switch', 'value': 'off'}
+
                 name = self.rPacket.get(1)
                 URLreq = baseURL + name
 
@@ -451,14 +461,15 @@ class RequestHandler:
                         jsonData['value'] = 'off'
                     else:
                         jsonData['value'] = 'on'
-                
+
                 URLreq = URLreq + "/command/"
 
                 try:
                     print "URLreq:", URLreq
                     print "jsonData:", jsonData
 
-                    resp = requests.post(URLreq,headers=PI_HEADER,data=jsonData)
+                    resp = requests.post(
+                        URLreq, headers=PI_HEADER, data=jsonData)
                 except requests.exceptions.RequestException as e:
                     print "Connection error: {}".format(e)
                     self.returnPacket.append("API CONNECTION ERROR")
@@ -467,7 +478,6 @@ class RequestHandler:
             print resp
             self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
-
 
         # if no endpoint is specified, set a default key value of none
         if out["endpoint"] is None:
@@ -481,10 +491,11 @@ class RequestHandler:
 
         # extract further objects from the packet against the keys specified in the parameters part of the translation, and join with `out`
         if "parameters" in endpoint.keys():
-            out = self.__join_dicts(out, self.extractFurtherObjects(1, endpoint["parameters"]))
+            out = self.__join_dicts(
+                out, self.extractFurtherObjects(1, endpoint["parameters"]))
 
         regexStrings = {}
-        
+
         if "queryObject" in operation:
             queryObject = operation["queryObject"]
 
@@ -498,11 +509,10 @@ class RequestHandler:
             p = self.hubVariables["query_string"][param]
             # provide the regexp for each enter in the regex strings, and key, with no default
             for reg in regexStrings:
-                regexStrings[reg] += [("%" + param + "%", param,'')]
+                regexStrings[reg] += [("%" + param + "%", param, '')]
             # set the corresponding value in the out obj
             out[param] = p
 
-        
         # to simplify code, lets lump the base url (that may require regex'ing) into the queryobj
         regexStrings["baseURL"] = re.findall(hub_regexp, baseURL)
         queryObject["baseURL"] = baseURL
@@ -526,23 +536,23 @@ class RequestHandler:
                     # error
                     return self.rPacket.marshall(False)
 
-                #coerce all into strings for now?
-                queryObject[regExp] = queryObject[regExp].replace(match,str(value))
+                # coerce all into strings for now?
+                queryObject[regExp] = queryObject[regExp].replace(
+                    match, str(value))
 
         print str(queryObject)
-        
-        
+
         # remove our now regexp'd baseURL from the query object
         baseURL = queryObject["baseURL"]
         del queryObject["baseURL"]
 
         try:
-            
+
             if request_type == "GET":
-                r = requests.get(baseURL, params= queryObject)
+                r = requests.get(baseURL, params=queryObject)
             elif request_type == "POST":
-                r = requests.post(baseURL, data= queryObject)
-        
+                r = requests.post(baseURL, data=queryObject)
+
         except requests.exceptions.RequestException as e:
             print "Connection error: {}".format(e)
             self.returnPacket.append("API CONNECTION ERROR")
@@ -561,10 +571,9 @@ class RequestHandler:
 
             for ret in returnVariables:
                 print jsonObj
-		if ret["name"] in jsonObj:
+                if ret["name"] in jsonObj:
                     print jsonObj[ret["name"]]
                     self.returnPacket.append(str(jsonObj[ret["name"]]))
-
 
         return self.returnPacket.marshall(True)
 
@@ -572,23 +581,21 @@ class RequestHandler:
 
         # every rest request should have the URL as the first item.
         url = self.rPacket.get(0)
-        
+
         #print "url"
-        
-	    #print url
+
+        #print url
 
         now = datetime.datetime.now()
-        print "------------------Time:", now.hour, now.minute, now.second	
-		
-	
+        print "------------------Time:", now.hour, now.minute, now.second
 
         pieces = [x for x in url.split("/") if x is not '']
-        
+
         #print "pieces"
-        
+
         #print pieces
 
-        part, rest = pieces[0],pieces[1:]
+        part, rest = pieces[0], pieces[1:]
 
         request_type = None
 
@@ -600,7 +607,7 @@ class RequestHandler:
         if self.rPacket.request_type == RadioPacket.REQUEST_TYPE_POST_REQUEST:
             request_type = "POST"
 
-        return self.processRESTRequest(rest, request_type, translation,part)
+        return self.processRESTRequest(rest, request_type, translation, part)
 
     def handleCloudVariable(self):
         namespaceHash = self.rPacket.get(0)
@@ -609,20 +616,19 @@ class RequestHandler:
         appId = self.rPacket.app_id
 
         self.cloud_ep.emit({
-            "appId":appId,
-            "uid":self.rPacket.uid,
-            "namespace":namespaceHash,
-            "variable_name":variableNameHash,
-            "value":value
+            "appId": appId,
+            "uid": self.rPacket.uid,
+            "namespace": namespaceHash,
+            "variable_name": variableNameHash,
+            "value": value
         })
 
         return self.returnPacket.marshall(True)
 
     def handleRequest(self):
         # check packet type in order to handle request correctly
-        if self.rPacket.request_type & (RadioPacket.REQUEST_TYPE_GET_REQUEST | RadioPacket.REQUEST_TYPE_POST_REQUEST) :
+        if self.rPacket.request_type & (RadioPacket.REQUEST_TYPE_GET_REQUEST | RadioPacket.REQUEST_TYPE_POST_REQUEST):
             return self.handleRESTRequest()
 
         if self.rPacket.request_type & (RadioPacket.REQUEST_TYPE_CLOUD_VARIABLE):
             return self.handleCloudVariable()
-
