@@ -368,30 +368,101 @@ class RequestHandler:
         
         #print urlFormat
                 
-        auth_token ='ddca3062-11ff-4116-87dc-36da9f01afe6'
-        hed = {'Authorization': 'Bearer ' + auth_token}
-        dataOn = {"commands":[{"component":"main","capability": "switch", "command":"on"}]}
-        dataOff = {"commands":[{"component":"main","capability": "switch", "command":"off"}]}
+        # auth_token ='ddca3062-11ff-4116-87dc-36da9f01afe6'
+        # hed = {'Authorization': 'Bearer ' + auth_token}
+        # dataOn = {"commands":[{"component":"main","capability": "switch", "command":"on"}]}
+        # dataOff = {"commands":[{"component":"main","capability": "switch", "command":"off"}]}
     
-        if part == PKG_IOT :
+        # if part == PKG_IOT :
             
-            baseURL = "https://api.smartthings.com/v1/devices/1439773a-c144-41cd-9c5d-d1b03d3fe0a1/commands"
+            # baseURL = "https://api.smartthings.com/v1/devices/1439773a-c144-41cd-9c5d-d1b03d3fe0a1/commands"
             
-            data1 = self.rPacket.get(1)
-            data2 = self.rPacket.get(2)
+            # data1 = self.rPacket.get(1)
+            # data2 = self.rPacket.get(2)
             
-            try:
-                if data2 == 1:
-                    requests.post(baseURL, json=dataOn,headers=hed)
-                else:
-                    requests.post(baseURL, json=dataOff,headers=hed)
+            # try:
+            #     if data2 == 1:
+            #         requests.post(baseURL, json=dataOn,headers=hed)
+            #     else:
+            #         requests.post(baseURL, json=dataOff,headers=hed)
                     
-            except requests.exceptions.RequestException as e:
-                print "Connection error: {}".format(e)
-                self.returnPacket.append("API CONNECTION ERROR")
-                return self.returnPacket.marshall(True)
+            # except requests.exceptions.RequestException as e:
+            #     print "Connection error: {}".format(e)
+            #     self.returnPacket.append("API CONNECTION ERROR")
+            #     return self.returnPacket.marshall(True)
         
-            self.returnPacket.append("OK")
+            # self.returnPacket.append("OK")
+            # return self.returnPacket.marshall(True)
+
+
+        if part == PKG_IOT :
+            res = "OK"
+            if PI_HEADER['school-id'] == None or PI_HEADER['pi-id'] == None:
+                print "Check headers"
+                print PI_HEADER
+
+            if request_type == "GET":
+                URLreq = baseURL + url[1]
+
+                if url[0] == "bulbState":
+                    URLreq = URLreq + "/bulb"
+                # elif url[0] == "bulbLevel":
+                #     URLreq = URLreq + "/bulb"
+                elif url[0] == "switchState":
+                    URLreq = URLreq + "/switch"
+                
+                URLreq = URLreq + "/status/"
+
+                try:
+                    resp = requests.get(URLreq,headers=PI_HEADER)
+                
+                except requests.exceptions.RequestException as e:
+                    print "Connection error: {}".format(e)
+                    self.returnPacket.append("API CONNECTION ERROR")
+                    return self.returnPacket.marshall(True)
+                #print URLreq
+                # response = {"device": "bulb", "status": {"level": "90","color": "unknown"}}
+                response = json.loads(resp.text)
+                print response
+                res = str(response['status']['level'])
+                # print res
+
+            elif request_type == "POST":
+                jsonData={'device':'switch', 'command':'Switch', 'value':'off'}
+                
+                name = self.rPacket.get(1)
+                URLreq = baseURL + name
+
+                if url[0] == "bulbState":
+                    URLreq = URLreq + "/bulb"
+                    jsonData['device'] = 'bulb'
+                    switchState = self.rPacket.get(2)
+                    if switchState == 0:
+                        jsonData['value'] = 'off'
+                    else:
+                        jsonData['value'] = 'on'
+                # elif url[0] == "bulbLevel":
+                #     URLreq = URLreq + "/bulb"
+                elif url[0] == "switchState":
+                    URLreq = URLreq + "/switch"
+                    jsonData['device'] = 'switch'
+                    switchState = self.rPacket.get(2)
+                    if switchState == 0:
+                        jsonData['value'] = 'off'
+                    else:
+                        jsonData['value'] = 'on'
+                
+                URLreq = URLreq + "/command/"
+
+                try:
+                    resp = requests.post(URLreq,headers=PI_HEADER,data=jsonData)
+                except requests.exceptions.RequestException as e:
+                    print "Connection error: {}".format(e)
+                    self.returnPacket.append("API CONNECTION ERROR")
+                    return self.returnPacket.marshall(True)
+
+            print resp
+            self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
 
        
