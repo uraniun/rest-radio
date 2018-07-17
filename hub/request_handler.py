@@ -414,6 +414,8 @@ class RequestHandler:
                 URLreq = URLreq + "/status/"
 
                 try:
+                    print "URLreq:", URLreq
+
                     resp = requests.get(URLreq,headers=PI_HEADER)
                 
                 except requests.exceptions.RequestException as e:
@@ -435,7 +437,6 @@ class RequestHandler:
 
                 if url[0] == "bulbState":
                     URLreq = URLreq + "/bulb"
-                    jsonData['device'] = 'bulb'
                     switchState = self.rPacket.get(2)
                     if switchState == 0:
                         jsonData['value'] = 'off'
@@ -445,7 +446,6 @@ class RequestHandler:
                 #     URLreq = URLreq + "/bulb"
                 elif url[0] == "switchState":
                     URLreq = URLreq + "/switch"
-                    jsonData['device'] = 'switch'
                     switchState = self.rPacket.get(2)
                     if switchState == 0:
                         jsonData['value'] = 'off'
@@ -455,6 +455,9 @@ class RequestHandler:
                 URLreq = URLreq + "/command/"
 
                 try:
+                    print "URLreq:", URLreq
+                    print "jsonData:", jsonData
+
                     resp = requests.post(URLreq,headers=PI_HEADER,data=jsonData)
                 except requests.exceptions.RequestException as e:
                     print "Connection error: {}".format(e)
@@ -465,7 +468,7 @@ class RequestHandler:
             self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
 
-       
+
         # if no endpoint is specified, set a default key value of none
         if out["endpoint"] is None:
             out["endpoint"] = "none"
