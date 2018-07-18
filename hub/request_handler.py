@@ -412,13 +412,15 @@ class RequestHandler:
 
             if request_type == "GET":
                 URLreq = baseURL + url[1]
+                valueTag = 'level'
 
                 if url[0] == "bulbState":
                     URLreq = URLreq + "/bulb"
-                # elif url[0] == "bulbLevel":
-                #     URLreq = URLreq + "/bulb"
+                elif url[0] == "bulbLevel":
+                    URLreq = URLreq + "/bulb"
                 elif url[0] == "switchState":
                     URLreq = URLreq + "/switch"
+                    valueTag = 'state'
 
                 URLreq = URLreq + "/status/"
 
@@ -435,7 +437,7 @@ class RequestHandler:
                 # response = {"device": "bulb", "status": {"level": "90","color": "unknown"}}
                 response = json.loads(resp.text)
                 print response
-                res = str(response['status']['level'])
+                res = str(response['status'][valueTag])
                 # print res
 
             elif request_type == "POST":
@@ -452,8 +454,11 @@ class RequestHandler:
                         jsonData['value'] = 'off'
                     else:
                         jsonData['value'] = 'on'
-                # elif url[0] == "bulbLevel":
-                #     URLreq = URLreq + "/bulb"
+                elif url[0] == "bulbLevel":
+                    URLreq = URLreq + "/bulb"
+                    jsonData['command'] = 'SetLevel'
+                    level = self.rPacket.get(2)
+                    jsonData['value'] = level
                 elif url[0] == "switchState":
                     URLreq = URLreq + "/switch"
                     switchState = self.rPacket.get(2)
