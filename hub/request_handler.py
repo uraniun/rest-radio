@@ -456,6 +456,7 @@ class RequestHandler:
                         jsonData['value'] = 'on'
                 elif url[0] == "bulbLevel":
                     URLreq = URLreq + "/bulb"
+                    jsonData['device'] = 'bulb'
                     jsonData['command'] = 'SetLevel'
                     level = self.rPacket.get(2)
                     jsonData['value'] = level
