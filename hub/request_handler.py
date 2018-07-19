@@ -418,6 +418,9 @@ class RequestHandler:
                     URLreq = URLreq + "/bulb"
                 elif url[0] == "bulbLevel":
                     URLreq = URLreq + "/bulb"
+                elif url[0] == "bulbTemp":
+                    URLreq = URLreq + "/bulb"
+                    valueTag = 'colorTemp'
                 elif url[0] == "switchState":
                     URLreq = URLreq + "/switch"
                     valueTag = 'state'
@@ -458,6 +461,12 @@ class RequestHandler:
                     URLreq = URLreq + "/bulb"
                     jsonData['device'] = 'bulb'
                     jsonData['command'] = 'SetLevel'
+                    level = self.rPacket.get(2)
+                    jsonData['value'] = level
+                elif url[0] == "bulbTemp":
+                    URLreq = URLreq + "/bulb"
+                    jsonData['device'] = 'bulb'
+                    jsonData['command'] = 'SetColor'
                     level = self.rPacket.get(2)
                     jsonData['value'] = level
                 elif url[0] == "switchState":
