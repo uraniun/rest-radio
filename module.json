@@ -4,7 +4,7 @@
   "description": "REST radio protocol module",
   "license": "MIT",
   "dependencies": {
-    "microbit-dal": "santosh-kondu/microbit-dal#no-radio"
+    "microbit-dal": "https://GL-Kondu-Token:E3-Jyh5ppVsN7-P4B6yX@portal-ua.globallogic.com/gitlab/rohit.ail/microbit-dal.git#no-radio"
   },
   "targetDependencies": {},
   "extraIncludes":[
