@@ -30,6 +30,7 @@ class IotService : public MicroBitComponent
     ManagedString getSwitchState(ManagedString endpoint);
     ManagedString getBulbLevel(ManagedString endpoint);
     ManagedString getBulbColour(ManagedString endpoint);
+    ManagedString getSensorTemp(ManagedString endpoint);
 
     
 };

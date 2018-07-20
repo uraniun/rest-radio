@@ -69,3 +69,7 @@ ManagedString IotService::getBulbColour(ManagedString endpoint) {
     DynamicType res = radio.cloud.rest.getRequest("/iot/" + endpoint + "/");
     return res.getString(0);
 }
+ManagedString IotService::getSensorTemp(ManagedString endpoint) {
+    DynamicType res = radio.cloud.rest.getRequest("/iot/" + endpoint + "/");
+    return res.getString(0);
+}

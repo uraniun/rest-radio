@@ -159,6 +159,14 @@
                         }
                     ]
                 },
+                "sensorTemp":{
+                    "returns":[
+                        {
+                            "type":"string",
+                            "name":"temperature"
+                        }
+                    ]
+                },
                 "bulbState":{
                     "returns":[
                         {
