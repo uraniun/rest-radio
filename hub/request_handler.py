@@ -422,6 +422,12 @@ class RequestHandler:
                 elif url[0] == "bulbTemp":
                     URLreq = URLreq + "/color-temperature/"
 
+                else:
+                    print "Unknown request!!!"
+                    self.returnPacket.append("Unknown request!!!")
+                    return self.returnPacket.marshall(True)
+
+
                 try:
                     print "URLreq:", URLreq
 
@@ -461,6 +467,12 @@ class RequestHandler:
                     URLreq = URLreq + "/color-temperature/"
                     level = self.rPacket.get(2)
                     jsonData['value'] = level
+
+                else:
+                    print "Unknown request!!!"
+                    self.returnPacket.append("Unknown request!!!")
+                    return self.returnPacket.marshall(True)
+
 
                 try:
                     print "URLreq:", URLreq
