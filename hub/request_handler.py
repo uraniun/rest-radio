@@ -422,6 +422,12 @@ class RequestHandler:
                 elif url[0] == "bulbTemp":
                     URLreq = URLreq + "/color-temperature/"
 
+                elif url[0] == "sensorState":
+                    URLreq = URLreq + "/motion/"
+
+                elif url[0] == "sensorTemp":
+                    URLreq = URLreq + "/temperature/"
+
                 else:
                     print "Unknown request!!!"
                     self.returnPacket.append("Unknown request!!!")
