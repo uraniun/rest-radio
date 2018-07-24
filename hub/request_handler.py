@@ -412,20 +412,15 @@ class RequestHandler:
 
             if request_type == "GET":
                 URLreq = baseURL + url[1]
-                valueTag = 'level'
 
-                if url[0] == "bulbState":
-                    URLreq = URLreq + "/bulb"
+                if url[0] == "bulbState" or url[0] == "switchState":
+                    URLreq = URLreq + "/switch/"
+
                 elif url[0] == "bulbLevel":
-                    URLreq = URLreq + "/bulb"
-                elif url[0] == "bulbTemp":
-                    URLreq = URLreq + "/bulb"
-                    valueTag = 'colorTemp'
-                elif url[0] == "switchState":
-                    URLreq = URLreq + "/switch"
-                    valueTag = 'state'
+                    URLreq = URLreq + "/switch-level/"
 
-                URLreq = URLreq + "/status/"
+                elif url[0] == "bulbTemp":
+                    URLreq = URLreq + "/color-temperature/"
 
                 try:
                     print "URLreq:", URLreq
@@ -440,44 +435,32 @@ class RequestHandler:
                 # response = {"device": "bulb", "status": {"level": "90","color": "unknown"}}
                 response = json.loads(resp.text)
                 print response
-                res = str(response['status'][valueTag])
+                res = str(response['value'])
                 # print res
 
             elif request_type == "POST":
-                jsonData = {'device': 'switch',
-                            'command': 'Switch', 'value': 'off'}
+                jsonData = {'value': 'off'}
 
                 name = self.rPacket.get(1)
                 URLreq = baseURL + name
 
-                if url[0] == "bulbState":
-                    URLreq = URLreq + "/bulb"
-                    switchState = self.rPacket.get(2)
-                    if switchState == 0:
-                        jsonData['value'] = 'off'
-                    else:
-                        jsonData['value'] = 'on'
-                elif url[0] == "bulbLevel":
-                    URLreq = URLreq + "/bulb"
-                    jsonData['device'] = 'bulb'
-                    jsonData['command'] = 'SetLevel'
-                    level = self.rPacket.get(2)
-                    jsonData['value'] = level
-                elif url[0] == "bulbTemp":
-                    URLreq = URLreq + "/bulb"
-                    jsonData['device'] = 'bulb'
-                    jsonData['command'] = 'SetColor'
-                    level = self.rPacket.get(2)
-                    jsonData['value'] = level
-                elif url[0] == "switchState":
-                    URLreq = URLreq + "/switch"
+                if url[0] == "bulbState" or url[0] == "switchState":
+                    URLreq = URLreq + "/switch/"
                     switchState = self.rPacket.get(2)
                     if switchState == 0:
                         jsonData['value'] = 'off'
                     else:
                         jsonData['value'] = 'on'
 
-                URLreq = URLreq + "/command/"
+                elif url[0] == "bulbLevel":
+                    URLreq = URLreq + "/switch-level/"
+                    level = self.rPacket.get(2)
+                    jsonData['value'] = level
+
+                elif url[0] == "bulbTemp":
+                    URLreq = URLreq + "/color-temperature/"
+                    level = self.rPacket.get(2)
+                    jsonData['value'] = level
 
                 try:
                     print "URLreq:", URLreq
