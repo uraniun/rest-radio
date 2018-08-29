@@ -227,14 +227,16 @@ class RequestHandler:
             #print url
             if url[0] == "energyLevel":
                 if url[1] == "0":
-                    URLreq = baseURL + "electricity/"
+                    URLreq = baseURL + "energy_type=ELECTRICITY"
                 elif url[1] == "1":
-                    URLreq = baseURL + "gas/"
+                    URLreq = baseURL + "energy_type=GAS"
                 elif url[1] == "2":
-                    URLreq = baseURL + "solar/"
+                    URLreq = baseURL + "energy_type=SOLAR"
 
-            if url[2] != "local":
-                URLreq = URLreq + url[2]
+            if url[2] == "local":
+                URLreq = URLreq + "&location_uid="+PI_HEADER['school-id']
+            else:
+                URLreq = URLreq + "&location_uid="+url[2]
 
             print URLreq
 

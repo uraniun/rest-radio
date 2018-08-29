@@ -310,7 +310,7 @@
     "energy":{
         "GET" : {
             "apiPrefix":"get",
-            "baseURL":"https://energyinschools.co.uk/api/v1/micro-bit/energy/",
+            "baseURL":"https://energyinschools.co.uk/api/v1/micro-bit/energy/consumption/?",
             "microbitQueryString":"/%endpoint%/%unit?%",
             "compulsoryParameters":[
                 {
