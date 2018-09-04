@@ -9,7 +9,8 @@ import datetime
 
 from utils import hub_regexp
 from pathlib import Path
-
+import datetime
+from datetime import timedelta
 """
 A class that handles two types of micro:bit request:
 
@@ -238,16 +239,37 @@ class RequestHandler:
             else:
                 URLreq = URLreq + "&location_uid="+url[2]
 
+            if len(url) > 3:
+                if url[3] == "historical":
+                    today = datetime.datetime.today()
+                    if url[4] == "hour":
+                        n_hours = int(url[5])
+                        FromDay = datetime.datetime.today() - timedelta(hours=n_hours)
+                    if url[4] == "day":
+                        n_days = int(url[5])
+                        FromDay = datetime.datetime.today() - timedelta(days=n_days)
+                    if url[4] == "week":
+                        n_weeks = int(url[5])
+                        FromDay = datetime.datetime.today() - timedelta(weeks=n_weeks)
+                    if url[4] == "month":
+                        n_months = int(url[5])
+                        n_days = 30 * n_months
+                        FromDay = datetime.datetime.today() - timedelta(days=n_days)
+                    URLreq = URLreq + "&from=" + FromDay.strftime('%Y-%m-%d %H:%M:%S.%f') + "&to=" + today.strftime('%Y-%m-%d %H:%M:%S.%f')
+
             print URLreq
 
             try:
                 resp = requests.get(URLreq, headers=PI_HEADER)
-                resJson = json.loads(resp.text)
-
-                if 'value' in resJson:
-                    res = str(resJson['value'])
+                print resp.status_code
+		if resp.status_code == 200:
+                    resJson = json.loads(resp.text)
+                    if 'value' in resJson:
+                        res = str(resJson['value'])
+                    else:
+                        res = resJson
                 else:
-                    res = resJson
+		    res = 0
 
             except requests.exceptions.RequestException as e:
                 print "Connection error: {}".format(e)
