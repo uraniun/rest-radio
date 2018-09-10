@@ -452,6 +452,9 @@ class RequestHandler:
                 elif url[0] == "sensorTemp":
                     URLreq = URLreq + "/temperature/"
 
+                elif url[0] == "bulbColour":
+                    URLreq = URLreq + "/color-control/"
+
                 else:
                     print "Unknown request!!!"
                     self.returnPacket.append("Unknown request!!!")
@@ -459,7 +462,7 @@ class RequestHandler:
 
 
                 try:
-                    print "URLreq:", URLreq
+                    #print "URLreq:", URLreq
 
                     resp = requests.get(URLreq, headers=PI_HEADER)
 
@@ -470,7 +473,7 @@ class RequestHandler:
                 #print URLreq
                 # response = {"device": "bulb", "status": {"level": "90","color": "unknown"}}
                 response = json.loads(resp.text)
-                print response
+                #print response
                 res = str(response['value'])
                 # print res
 
@@ -498,6 +501,11 @@ class RequestHandler:
                     level = self.rPacket.get(2)
                     jsonData['value'] = level
 
+                elif url[0] == "bulbColour":
+                    URLreq = URLreq + "/color-control/"
+                    level = self.rPacket.get(2)
+                    jsonData['value'] = level
+
                 else:
                     print "Unknown request!!!"
                     self.returnPacket.append("Unknown request!!!")
@@ -505,8 +513,8 @@ class RequestHandler:
 
 
                 try:
-                    print "URLreq:", URLreq
-                    print "jsonData:", jsonData
+                    #print "URLreq:", URLreq
+                    #print "jsonData:", jsonData
 
                     resp = requests.post(
                         URLreq, headers=PI_HEADER, data=jsonData)
@@ -515,7 +523,7 @@ class RequestHandler:
                     self.returnPacket.append("API CONNECTION ERROR")
                     return self.returnPacket.marshall(True)
 
-            print resp
+            #print resp
             self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
 
