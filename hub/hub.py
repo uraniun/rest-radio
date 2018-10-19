@@ -55,6 +55,10 @@ try:
         serial_handler = SerialHandler(port1)
     elif ioPort2.exists():
         serial_handler = SerialHandler(port2)
+        
+    # load translations JSON file
+    translationsFile = open("./translations.json")
+    translations = json.load(translationsFile)
     
     # while true swap between polling EPs and receiving / sending.
     
@@ -63,8 +67,6 @@ try:
         # if the bridged micro:bit has sent us data, process
         if serial_handler.buffered() > 0:
             rPacket = RadioPacket(serial_handler.read_packet())
-            translationsFile = open("./translations.json")
-            translations = json.load(translationsFile)
             requestHandler = RequestHandler(rPacket,translations, hub_variables, None)
             bytes = requestHandler.handleRequest()
             serial_handler.write_packet(bytes)
