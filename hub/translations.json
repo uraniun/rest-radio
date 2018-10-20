@@ -549,5 +549,36 @@
                 }
             }
         }
+    },
+    "energyMeter":{
+        "POST" : {
+            "apiPrefix":"send",
+            "baseURL":"http://localhost:8000/api/data-store/energy/",
+            "microbitQueryString":"/%endpoint%",
+            "queryObject":{
+                "name":"%name%",
+                "value":"%value%",
+                "type":"%type%",
+                "unit":"watts"
+            },
+            "endpoint":{
+                "energyLevel":{
+                    "parameters":[
+                        {
+                            "type":"string",
+                            "name":"name"
+                        },
+                        {
+                            "type":"int",
+                            "name":"value"
+                        },
+                        {
+                            "type":"int",
+                            "name":"type"
+                        }
+                    ]
+                }
+            }
+        }
     }
 }
