@@ -55,7 +55,8 @@ while(True):
 
     # every few minutes we check github for new translations.
     if github_poller.poll():
-        print "true!!!"
+        print "Updating translations from Github"
+        translations = github_poller.get_cached()
         with open("./translations-remote.json", 'w') as f:
             f.write(json.dumps(github_poller.get_cached(), indent=4, sort_keys=True))
 
