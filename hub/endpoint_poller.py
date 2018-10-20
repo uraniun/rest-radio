@@ -28,6 +28,10 @@ class EndpointPoller:
 
             endpoints = safe_extract("endpoint", polling_eps,[])
 
+            if len(endpoints) == 0:
+                self.poll_urls += [url]
+                continue
+
             params = re.findall(hub_regexp, url)
 
             for ep_key in endpoints.keys():
@@ -76,12 +80,11 @@ class EndpointPoller:
         if cached:
             print "cached"
             print cached
+            diff += [[r] for r in response_json.keys() if r not in cached.keys()]
             for r in response_json.keys():
                 record = response_json[r]
 
                 if r not in cached.keys():
-                    diff += [record]
-                elif record["timestamp"] > cached[r]["timestamp"]:
                     diff += [record]
         else:
             for r in response_json.keys():

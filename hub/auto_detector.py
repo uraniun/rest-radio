@@ -3,6 +3,10 @@ MICROBIT_PID = 516
 
 from serial import Serial
 import serial.tools.list_ports
+from pathlib import Path
+
+
+default_ports = ["/dev/ttyACM0", "/dev/ttyACM1", "/dev/ttyACM2", "/dev/ttyACM3"]
 
 
 """
@@ -35,5 +39,14 @@ def auto_detect_microbit():
 
         if selected is not None:
             break
+
+    # if we get here, all hope is lost, pick from a pre determined set of ports.
+    if selected is None:
+        for port in default_ports:
+            io_port = Path(port)
+
+            if io_port.exists():
+                selected = port
+                break
 
     return selected

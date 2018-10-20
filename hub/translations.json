@@ -1,4 +1,10 @@
 {
+    "translations":{
+        "POLL": {
+            "baseURL":"https://raw.githubusercontent.com/lancaster-university/rest-radio/master/hub/translations.json",
+            "endpoint":{}
+        }
+    },
     "weather":{
         "GET" : {
             "apiPrefix":"get",
