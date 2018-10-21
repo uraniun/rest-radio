@@ -1,4 +1,5 @@
 #include "WeatherService.h"
+#include "ErrorNo.h"
 
 WeatherService::WeatherService(MicroBitPeridoRadio& r) : radio(r)
 {

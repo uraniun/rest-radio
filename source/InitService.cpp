@@ -1,4 +1,5 @@
 #include "InitService.h"
+#include "ErrorNo.h"
 
 InitService::InitService(MicroBitPeridoRadio& r) : radio(r)
 {

@@ -1,4 +1,5 @@
 #include "EnergymeterService.h"
+#include "ErrorNo.h"
 
 EnergymeterService::EnergymeterService(MicroBitPeridoRadio& r) : radio(r)
 {

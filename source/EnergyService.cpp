@@ -1,4 +1,5 @@
 #include "EnergyService.h"
+#include "ErrorNo.h"
 
 EnergyService::EnergyService(MicroBitPeridoRadio& r) : radio(r)
 {

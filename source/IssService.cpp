@@ -1,4 +1,5 @@
 #include "IssService.h"
+#include "ErrorNo.h"
 
 IssService::IssService(MicroBitPeridoRadio& r) : radio(r)
 {

@@ -1,4 +1,5 @@
 #include "IotService.h"
+#include "ErrorNo.h"
 
 IotService::IotService(MicroBitPeridoRadio& r) : radio(r)
 {

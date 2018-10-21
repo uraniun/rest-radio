@@ -1,4 +1,5 @@
 #include "ShareService.h"
+#include "ErrorNo.h"
 
 ShareService::ShareService(MicroBitPeridoRadio& r) : radio(r)
 {

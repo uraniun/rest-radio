@@ -1,4 +1,5 @@
 #include "CarbonService.h"
+#include "ErrorNo.h"
 
 CarbonService::CarbonService(MicroBitPeridoRadio& r) : radio(r)
 {
