@@ -1,6 +1,6 @@
 import sys, struct, random
 
-struct_format = "<HHB"
+struct_format = "<BBHB"
 header_len = 5
 
 class RadioPacket:
@@ -23,8 +23,9 @@ class RadioPacket:
     Instantiate with another RadioPacket instance
     """
     def __init_with_class(self,radioPacket):
-        self.uid = radioPacket.uid
         self.app_id = radioPacket.app_id
+        self.namespace_id = radioPacket.namespace_id
+        self.uid = radioPacket.uid
         self.request_type = radioPacket.request_type
 
     """
@@ -34,12 +35,13 @@ class RadioPacket:
         header = packet[:header_len]
         payload = packet[header_len:]
 
-        uid, app_id, request_type = struct.unpack_from(struct_format, header)
-        self.uid = uid
+        app_id, namespace_id, uid, request_type = struct.unpack_from(struct_format, header)
         self.app_id = app_id
+        self.namespace_id = namespace_id
+        self.uid = uid
         self.request_type = request_type
 
-        print("uid: %d appid: %d rt: %d"%(uid, app_id,request_type))
+        print("uid: %d appid: %d rt: %d" % (uid, app_id,request_type))
 
         self.unmarshall(payload)
 
