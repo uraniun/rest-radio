@@ -647,6 +647,9 @@ class RequestHandler:
 
         request_type = None
 
+        if part not in self.translations.keys():
+            return self.rPacket.marshall(False)
+
         translation = self.translations[part]
 
         if self.rPacket.request_type == RadioPacket.REQUEST_TYPE_GET_REQUEST:

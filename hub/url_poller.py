@@ -31,8 +31,6 @@ class URLPoller:
                 record = response_json[r]
                 diff += [record]
 
-        print diff
-
         self.cached = response_json
 
         return len(diff) > 0

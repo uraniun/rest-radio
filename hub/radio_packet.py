@@ -41,7 +41,7 @@ class RadioPacket:
         self.uid = uid
         self.request_type = request_type
 
-        print("uid: %d appid: %d rt: %d" % (uid, app_id,request_type))
+        print("uid: %d appid: %d namespaceid: %d rt: %d" % (uid, app_id, namespace_id, request_type))
 
         self.unmarshall(payload)
 
@@ -122,7 +122,8 @@ class RadioPacket:
         print("DATA:")
         print(self.data)
         print(return_code)
-        header = struct.pack(struct_format, self.uid, self.app_id, self.request_type | return_code)
+
+        header = struct.pack(struct_format, self.app_id, self.namespace_id, self.uid, self.request_type | return_code)
 
         payload = ""
 

@@ -26,7 +26,7 @@ hub_variables = {
     }
 }
 
-auto_detect = True
+auto_detect = False
 
 # if auto-detect is False, this path will be used.
 selected = "/dev/cu.usbmodem1462"
