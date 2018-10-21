@@ -1,6 +1,6 @@
 #include "CarbonService.h"
 
-CarbonService::CarbonService(Radio& r) : radio(r)
+CarbonService::CarbonService(MicroBitPeridoRadio& r) : radio(r)
 {
     
 }

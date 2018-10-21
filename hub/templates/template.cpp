@@ -1,6 +1,6 @@
 #include "%SERVICE_NAME_PASCAL%.h"
 
-%SERVICE_NAME_PASCAL%::%SERVICE_NAME_PASCAL%(Radio& r) : radio(r)
+%SERVICE_NAME_PASCAL%::%SERVICE_NAME_PASCAL%(MicroBitPeridoRadio& r) : radio(r)
 {
     %SERVICE_CONSTRUCTOR_BODY%
 }

@@ -1,6 +1,6 @@
 #include "IssService.h"
 
-IssService::IssService(Radio& r) : radio(r)
+IssService::IssService(MicroBitPeridoRadio& r) : radio(r)
 {
     
 }

@@ -1,6 +1,6 @@
 #include "EnergymeterService.h"
 
-EnergymeterService::EnergymeterService(Radio& r) : radio(r)
+EnergymeterService::EnergymeterService(MicroBitPeridoRadio& r) : radio(r)
 {
     
 }

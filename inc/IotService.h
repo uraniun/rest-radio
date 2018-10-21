@@ -1,14 +1,14 @@
 #ifndef IOTSERVICE_SERVICE_H
 #define IOTSERVICE_SERVICE_H
 
-#include "Radio.h"
+#include "MicroBitPeridoRadio.h"
 #include "MicroBitComponent.h"
 
 
 
 class IotService : public MicroBitComponent
 {
-    Radio& radio;
+    MicroBitPeridoRadio& radio;
 
     
 
@@ -16,7 +16,7 @@ class IotService : public MicroBitComponent
 
     virtual void idleTick();
 
-    IotService(Radio& r);
+    IotService(MicroBitPeridoRadio& r);
 
     ManagedString setSwitchState(ManagedString switchName, int state);
     ManagedString setBulbState(ManagedString bulbName, int state);

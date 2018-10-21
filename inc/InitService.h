@@ -1,14 +1,14 @@
 #ifndef INITSERVICE_SERVICE_H
 #define INITSERVICE_SERVICE_H
 
-#include "Radio.h"
+#include "MicroBitPeridoRadio.h"
 #include "MicroBitComponent.h"
 
 
 
 class InitService : public MicroBitComponent
 {
-    Radio& radio;
+    MicroBitPeridoRadio& radio;
 
     
 
@@ -16,7 +16,7 @@ class InitService : public MicroBitComponent
 
     virtual void idleTick();
 
-    InitService(Radio& r);
+    InitService(MicroBitPeridoRadio& r);
 
     ManagedString setReset(ManagedString reset);
     ManagedString setSchoolId(ManagedString schoolid);

@@ -1,7 +1,7 @@
 #ifndef WEATHERSERVICE_SERVICE_H
 #define WEATHERSERVICE_SERVICE_H
 
-#include "Radio.h"
+#include "MicroBitPeridoRadio.h"
 #include "MicroBitComponent.h"
 
 struct WeatherServiceForecastNow {
@@ -25,7 +25,7 @@ struct WeatherServiceWind {
 
 class WeatherService : public MicroBitComponent
 {
-    Radio& radio;
+    MicroBitPeridoRadio& radio;
 
     
 
@@ -33,7 +33,7 @@ class WeatherService : public MicroBitComponent
 
     virtual void idleTick();
 
-    WeatherService(Radio& r);
+    WeatherService(MicroBitPeridoRadio& r);
 
     int setRoomNone(ManagedString room, int temperature, int light_level, int humidity);
     int setRoomLightlevel(ManagedString room, int light_level);

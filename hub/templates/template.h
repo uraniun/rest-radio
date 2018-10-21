@@ -1,14 +1,14 @@
 #ifndef %SERVICE_NAME_UPPER%_SERVICE_H
 #define %SERVICE_NAME_UPPER%_SERVICE_H
 
-#include "Radio.h"
+#include "MicroBitPeridoRadio.h"
 #include "MicroBitComponent.h"
 
 %SERVICE_STRUCTS%
 
 class %SERVICE_NAME_PASCAL% : public MicroBitComponent
 {
-    Radio& radio;
+    MicroBitPeridoRadio& radio;
 
     %SERVICE_STRUCT_MEMBERS%
 
@@ -16,7 +16,7 @@ class %SERVICE_NAME_PASCAL% : public MicroBitComponent
 
     virtual void idleTick();
 
-    %SERVICE_NAME_PASCAL%(Radio& r);
+    %SERVICE_NAME_PASCAL%(MicroBitPeridoRadio& r);
 
     %SERVICE_MEMBER_FUNCTION_DEFINITIONS%
 };

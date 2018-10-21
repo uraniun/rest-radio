@@ -1,14 +1,14 @@
 #ifndef ISSSERVICE_SERVICE_H
 #define ISSSERVICE_SERVICE_H
 
-#include "Radio.h"
+#include "MicroBitPeridoRadio.h"
 #include "MicroBitComponent.h"
 
 
 
 class IssService : public MicroBitComponent
 {
-    Radio& radio;
+    MicroBitPeridoRadio& radio;
 
     
 
@@ -16,7 +16,7 @@ class IssService : public MicroBitComponent
 
     virtual void idleTick();
 
-    IssService(Radio& r);
+    IssService(MicroBitPeridoRadio& r);
 
     ManagedString getName(ManagedString endpoint);
     int getAltitude(ManagedString endpoint);

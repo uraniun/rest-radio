@@ -1,6 +1,6 @@
 #include "InitService.h"
 
-InitService::InitService(Radio& r) : radio(r)
+InitService::InitService(MicroBitPeridoRadio& r) : radio(r)
 {
     
 }

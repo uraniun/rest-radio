@@ -1,6 +1,6 @@
 #include "ShareService.h"
 
-ShareService::ShareService(Radio& r) : radio(r)
+ShareService::ShareService(MicroBitPeridoRadio& r) : radio(r)
 {
     
 }

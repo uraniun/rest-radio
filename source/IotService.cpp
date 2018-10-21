@@ -1,6 +1,6 @@
 #include "IotService.h"
 
-IotService::IotService(Radio& r) : radio(r)
+IotService::IotService(MicroBitPeridoRadio& r) : radio(r)
 {
     
 }

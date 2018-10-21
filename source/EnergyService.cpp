@@ -1,6 +1,6 @@
 #include "EnergyService.h"
 
-EnergyService::EnergyService(Radio& r) : radio(r)
+EnergyService::EnergyService(MicroBitPeridoRadio& r) : radio(r)
 {
     
 }

@@ -1,6 +1,6 @@
 #include "WeatherService.h"
 
-WeatherService::WeatherService(Radio& r) : radio(r)
+WeatherService::WeatherService(MicroBitPeridoRadio& r) : radio(r)
 {
     
 }

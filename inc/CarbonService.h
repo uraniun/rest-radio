@@ -1,14 +1,14 @@
 #ifndef CARBONSERVICE_SERVICE_H
 #define CARBONSERVICE_SERVICE_H
 
-#include "Radio.h"
+#include "MicroBitPeridoRadio.h"
 #include "MicroBitComponent.h"
 
 
 
 class CarbonService : public MicroBitComponent
 {
-    Radio& radio;
+    MicroBitPeridoRadio& radio;
 
     
 
@@ -16,7 +16,7 @@ class CarbonService : public MicroBitComponent
 
     virtual void idleTick();
 
-    CarbonService(Radio& r);
+    CarbonService(MicroBitPeridoRadio& r);
 
     ManagedString getCarbonIndex(ManagedString endpoint);
     ManagedString getCarbonValue(ManagedString endpoint);

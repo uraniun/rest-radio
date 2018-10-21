@@ -1,14 +1,14 @@
 #ifndef ENERGYSERVICE_SERVICE_H
 #define ENERGYSERVICE_SERVICE_H
 
-#include "Radio.h"
+#include "MicroBitPeridoRadio.h"
 #include "MicroBitComponent.h"
 
 
 
 class EnergyService : public MicroBitComponent
 {
-    Radio& radio;
+    MicroBitPeridoRadio& radio;
 
     
 
@@ -16,7 +16,7 @@ class EnergyService : public MicroBitComponent
 
     virtual void idleTick();
 
-    EnergyService(Radio& r);
+    EnergyService(MicroBitPeridoRadio& r);
 
     ManagedString getEnergyLevel(ManagedString endpoint);
 
