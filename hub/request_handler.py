@@ -42,18 +42,10 @@ class RequestHandler:
         self.translations = translations
         self.cloud_ep = cloud_ep
         self.returnPacket = RadioPacket(rPacket)
-        file = Path(PERSIST_FILE)
-        if file.is_file():
-            file = open(PERSIST_FILE, 'r')
-            self.PI_ID = pickle.load(file)
-            file.close()
-            PI_HEADER['school-id'] = self.PI_ID['schoolId']
-            PI_HEADER['pi-id'] = self.PI_ID['piId']
-        else:
-            PI_ID['schoolId'] = PI_HEADER['school-id'] = None
-            PI_ID['piId'] = PI_HEADER['pi-id'] = None
-            self.PI_ID = PI_ID
-        print PI_HEADER
+
+        #for now, hack hub_variables into the code the uses PI_HEADER
+        PI_HEADER['school-id'] = self.hubVariables['query_string']['school-id']
+        PI_HEADER['pi-id'] = self.hubVariables['query_string']['pi-id']
 
     """
     Recursively traverse a python json structure given a dot separated path. Array indices also work here.
@@ -539,11 +531,8 @@ class RequestHandler:
 
 
                 try:
-                    #print "URLreq:", URLreq
-                    #print "jsonData:", jsonData
+                    resp = requests.post(URLreq, headers=PI_HEADER, data=jsonData)
 
-                    resp = requests.post(
-                        URLreq, headers=PI_HEADER, data=jsonData)
                 except requests.exceptions.RequestException as e:
                     print "Connection error: {}".format(e)
                     self.returnPacket.append("API CONNECTION ERROR")
@@ -599,9 +588,6 @@ class RequestHandler:
         self.replace_template_with_values(regexStrings, queryObject, out)
         self.replace_template_with_values(regexStrings, headers, out)
 
-        print "HEADERS: "
-        print headers
-
         # remove our now regexp'd baseURL from the query object
         baseURL = queryObject["baseURL"]
         del queryObject["baseURL"]
@@ -636,22 +622,13 @@ class RequestHandler:
         return self.returnPacket.marshall(True)
 
     def handleRESTRequest(self):
-
         # every rest request should have the URL as the first item.
         url = self.rPacket.get(0)
-
-        #print "url"
-
-        #print url
 
         now = datetime.datetime.now()
         print "------------------Time:", now.hour, now.minute, now.second
 
         pieces = [x for x in url.split("/") if x is not '']
-
-        #print "pieces"
-
-        #print pieces
 
         part, rest = pieces[0], pieces[1:]
 
@@ -671,13 +648,11 @@ class RequestHandler:
         return self.processRESTRequest(rest, request_type, translation, part)
 
     def handleHelloPacket(self):
-        # self.hubVariables["query_string"]["school-id"] = "655BD"
-        self.hubVariables["query_string"]["school-id"] = self.rPacket.get(0)
-        self.hubVariables["query_string"]["pi-id"] = self.rPacket.get(1)
 
-        # set the unoptimised variable too (until I have the time to get rid of it)
-        self.PI_ID["school-id"] = self.hubVariables["query_string"]["school-id"]
-        self.PI_ID["pi-id"] = self.hubVariables["query_string"]["pi-id"]
+        self.hubVariables["query_string"] = {
+            "school-id":"6558D", #self.rPacket.get(0)
+            "pi-id": self.rPacket.get(1)
+        }
 
         self.hubVariables["authenticated"] = True
         return None

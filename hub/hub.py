@@ -9,6 +9,7 @@ from url_poller import URLPoller
 from serial_handler import SerialHandler
 from pearson import pearson_hash
 from time import sleep
+from multiprocessing import Process, Manager
 
 # this struct is passed to class instances for general use.
 hub_variables = {
@@ -28,6 +29,17 @@ hub_variables = {
         "poll_time" : 60
     }
 }
+
+shared_manager = Manager()
+shared_dict = shared_manager.dict(hub_variables)
+
+def handleRequest(requestHandler, serial_handler):
+    bytes = requestHandler.handleRequest()
+
+    if bytes is not None and len(bytes):
+        serial_handler.lock()
+        serial_handler.write_packet(bytes)
+        serial_handler.unlock()
 
 auto_detect = False
 
@@ -52,13 +64,11 @@ while(True):
     # if the bridged micro:bit has sent us data, process
     if serial_handler.buffered() > 0:
         rPacket = RadioPacket(serial_handler.read_packet())
-        requestHandler = RequestHandler(rPacket,translations, hub_variables, None)
-        bytes = requestHandler.handleRequest()
+        requestHandler = RequestHandler(rPacket,translations, shared_dict, None)
 
-        if bytes is not None and len(bytes):
-            serial_handler.write_packet(bytes)
-
-        print hub_variables["query_string"]
+        # spawn a new thread to handle the request
+        p = Process(target=handleRequest, args=(requestHandler, serial_handler,))
+        p.start()
 
     # every few minutes we check github for new translations.
     if github_poller.poll():

@@ -1,6 +1,7 @@
 from serial import Serial
 from radio_packet import RadioPacket
 import struct
+from multiprocessing import Lock
 
 # constants for the serial line internet protocol.
 # https://en.wikipedia.org/wiki/Serial_Line_Internet_Protocol
@@ -38,6 +39,8 @@ class SerialHandler():
 
         # send break to reset the bridge
         self.s.send_break()
+
+        self.resource_lock = Lock()
 
 
     """
@@ -122,3 +125,9 @@ class SerialHandler():
             print("%c [%d]" % (p, ord(p)))
 
         self.s.write(''.join(finalBytes))
+
+    def lock(self):
+        self.resource_lock.acquire()
+
+    def unlock(self):
+        self.resource_lock.release()
