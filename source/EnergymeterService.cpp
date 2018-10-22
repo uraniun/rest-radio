@@ -3,12 +3,12 @@
 
 EnergymeterService::EnergymeterService(MicroBitPeridoRadio& r) : radio(r)
 {
-    
+
 }
 
 void EnergymeterService::idleTick()
 {
-    
+
 }
 
 int EnergymeterService::sendEnergyLevel(ManagedString name, int value, int type) {

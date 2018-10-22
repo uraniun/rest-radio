@@ -561,6 +561,10 @@
                 "type":"%type%",
                 "unit":"watts"
             },
+            "headers":{
+                "pi-id":"%pi-id%",
+                "school-id":"%school-id%"
+            },
             "endpoint":{
                 "energyLevel":{
                     "parameters":[

@@ -171,6 +171,7 @@ class RequestHandler:
         #print "baseURL"
         #print baseURL
 
+        # the following giant mess needs to be refactored at some point... but now now.
         if part == PKG_CARBON:
             res = 'OK'
             #print "Handle carbon package here"
@@ -527,6 +528,8 @@ class RequestHandler:
             self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
 
+        # any code above needs to be refactored.
+
         # if no endpoint is specified, set a default key value of none
         if out["endpoint"] is None:
             out["endpoint"] = "none"
@@ -585,8 +588,7 @@ class RequestHandler:
                     return self.rPacket.marshall(False)
 
                 # coerce all into strings for now?
-                queryObject[regExp] = queryObject[regExp].replace(
-                    match, str(value))
+                queryObject[regExp] = queryObject[regExp].replace(match, str(value))
 
         print str(queryObject)
 
@@ -595,7 +597,6 @@ class RequestHandler:
         del queryObject["baseURL"]
 
         try:
-
             if request_type == "GET":
                 r = requests.get(baseURL, params=queryObject)
             elif request_type == "POST":
@@ -603,8 +604,7 @@ class RequestHandler:
 
         except requests.exceptions.RequestException as e:
             print "Connection error: {}".format(e)
-            self.returnPacket.append("API CONNECTION ERROR")
-            return self.returnPacket.marshall(True)
+            return self.returnPacket.marshall(False)
 
         if "jsonPath" in endpoint.keys():
             path = [x for x in endpoint["jsonPath"].split(".") if x]
@@ -660,6 +660,17 @@ class RequestHandler:
 
         return self.processRESTRequest(rest, request_type, translation, part)
 
+    def handleHelloPacket(self):
+        self.hubVariables["query_string"]["school-id"] = self.rPacket.get(0)
+        self.hubVariables["query_string"]["pi-id"] = self.rPacket.get(1)
+
+        # set the unoptimised variable too (until I have the time to get rid of it)
+        self.PI_ID["school-id"] = self.hubVariables["query_string"]["school-id"]
+        self.PI_ID["pi-id"] = self.hubVariables["query_string"]["pi-id"]
+
+        self.hubVariables["authenticated"] = True
+        return None
+
     def handleCloudVariable(self):
         namespaceHash = self.rPacket.get(0)
         variableNameHash = self.rPacket.get(1)
@@ -677,9 +688,16 @@ class RequestHandler:
         return self.returnPacket.marshall(True)
 
     def handleRequest(self):
+
+        if self.rPacket.request_type & RadioPacket.REQUEST_TYPE_HELLO:
+            return self.handleHelloPacket()
+
         # check packet type in order to handle request correctly
         if self.rPacket.request_type & (RadioPacket.REQUEST_TYPE_GET_REQUEST | RadioPacket.REQUEST_TYPE_POST_REQUEST):
             return self.handleRESTRequest()
 
         if self.rPacket.request_type & (RadioPacket.REQUEST_TYPE_CLOUD_VARIABLE):
             return self.handleCloudVariable()
+
+        print "unrecognised packet type"
+        exit(1)

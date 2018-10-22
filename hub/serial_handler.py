@@ -36,6 +36,9 @@ class SerialHandler():
         # no timeout from this point on.
         self.s.timeout = None
 
+        # send break to reset the bridge
+        self.s.send_break()
+
 
     """
     Return an error response to the bridge.

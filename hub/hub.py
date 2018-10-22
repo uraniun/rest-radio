@@ -12,9 +12,12 @@ from time import sleep
 
 # this struct is passed to class instances for general use.
 hub_variables = {
+    "authenticated": False,
     # Variables attached to the query_string object will be inserted into query strings
     "query_string":{
-        "school_id":"123456789"
+        # by default our auth variables are empty, it will be populated by the auth micro:bit
+        "school-id":"",
+        "pi-id":""
     },
     "cloud_variable_socket":{
         "address":"localhost",
@@ -51,7 +54,11 @@ while(True):
         rPacket = RadioPacket(serial_handler.read_packet())
         requestHandler = RequestHandler(rPacket,translations, hub_variables, None)
         bytes = requestHandler.handleRequest()
-        serial_handler.write_packet(bytes)
+
+        if bytes is not None and len(bytes):
+            serial_handler.write_packet(bytes)
+
+        print hub_variables["query_string"]
 
     # every few minutes we check github for new translations.
     if github_poller.poll():

@@ -14,6 +14,7 @@ class RadioPacket:
     REQUEST_TYPE_POST_REQUEST = 0x02
     REQUEST_TYPE_CLOUD_VARIABLE = 0x04
     REQUEST_TYPE_BROADCAST = 0x08
+    REQUEST_TYPE_HELLO = 0x10
 
     REQUEST_STATUS_ACK = 0x20
     REQUEST_STATUS_ERROR = 0x40
@@ -42,6 +43,9 @@ class RadioPacket:
         self.request_type = request_type
 
         print("uid: %d appid: %d namespaceid: %d rt: %d" % (uid, app_id, namespace_id, request_type))
+
+        for b in payload:
+            print "%c[%d]" % (b , ord(b))
 
         self.unmarshall(payload)
 
@@ -72,6 +76,8 @@ class RadioPacket:
     Converts a byte string into member variables used in this instance
     """
     def unmarshall(self, payload):
+
+        print "remaining len: %d" % (len(payload))
 
         if len(payload) == 0:
             return
@@ -115,8 +121,10 @@ class RadioPacket:
         if status == None:
             return_code = 0
         elif status:
+            print "MARSHALL OK"
             return_code = RadioPacket.REQUEST_STATUS_OK
         else:
+            print "MARSHALL ERR"
             return_code = RadioPacket.REQUEST_STATUS_ERROR
 
         print("DATA:")
