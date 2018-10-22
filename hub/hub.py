@@ -29,10 +29,7 @@ hub_variables = {
         "poll_time" : 60
     }
 }
-
-shared_manager = Manager()
-shared_dict = shared_manager.dict(hub_variables)
-
+# this function is run when a packet is received by a separate process.
 def handleRequest(requestHandler, serial_handler):
     bytes = requestHandler.handleRequest()
 
@@ -41,8 +38,13 @@ def handleRequest(requestHandler, serial_handler):
         serial_handler.write_packet(bytes)
         serial_handler.unlock()
 
-auto_detect = False
+# we can share variables using a manager
+shared_manager = Manager()
+# make a shared variable, based on our preset hub_variables
+# NOTE: when updating an inside dict, use the top level dictionary.
+shared_dict = shared_manager.dict(hub_variables)
 
+auto_detect = False
 # if auto-detect is False, this path will be used.
 selected = "/dev/cu.usbmodem1462"
 
