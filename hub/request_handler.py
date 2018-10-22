@@ -7,7 +7,7 @@ import pickle
 import os
 import datetime
 
-from utils import hub_regexp
+from utils import hub_regexp, safe_extract
 from pathlib import Path
 import datetime
 from datetime import timedelta
@@ -97,6 +97,32 @@ class RequestHandler:
         dict3.update(dict2)
         return dict3
 
+    def replace_template_with_values(self, regular_expressions, object, values):
+        # foreach regexp result from our regexps, map values from the packet into the query object
+        for regExp in regular_expressions:
+            for tup in regular_expressions[regExp]:
+                match, key, default = tup
+
+                value = None
+
+                if key in values.keys():
+                    value = values[key]
+                elif default == "":
+                    # optional
+                    del object[regExp]
+                    continue
+                elif default:
+                    value = default
+                else:
+                    # error
+                    return self.rPacket.marshall(False)
+
+                # coerce all into strings for now?
+                if regExp in object.keys():
+                    object[regExp] = object[regExp].replace(match, str(value))
+
+        print str(object)
+
     """
     given a start index, extract further objects from a radio packet, mapping them into the params object
 
@@ -165,13 +191,12 @@ class RequestHandler:
         if "baseURL" in operation:
             baseURL = operation["baseURL"]
 
-        urlFormat = [
-            x for x in operation["microbitQueryString"].split("/") if x]
+        urlFormat = [x for x in operation["microbitQueryString"].split("/") if x]
 
         #print "baseURL"
         #print baseURL
 
-        # the following giant mess needs to be refactored at some point... but now now.
+        # the following giant mess needs to be refactored at some point... but not now.
         if part == PKG_CARBON:
             res = 'OK'
             #print "Handle carbon package here"
@@ -542,17 +567,20 @@ class RequestHandler:
 
         # extract further objects from the packet against the keys specified in the parameters part of the translation, and join with `out`
         if "parameters" in endpoint.keys():
-            out = self.__join_dicts(
-                out, self.extractFurtherObjects(1, endpoint["parameters"]))
+            out = self.__join_dicts(out, self.extractFurtherObjects(1, endpoint["parameters"]))
 
         regexStrings = {}
 
-        if "queryObject" in operation:
-            queryObject = operation["queryObject"]
+        queryObject = safe_extract("queryObject", operation, {})
+        headers = safe_extract("headers", operation, {})
 
         # for each query field in the queryobject extract the %variable_name% pattern.
         for param in queryObject:
             regexStrings[param] = re.findall(hub_regexp, queryObject[param])
+
+        # for each query field in the queryobject extract the %variable_name% pattern.
+        for param in headers:
+            regexStrings[param] = re.findall(hub_regexp, headers[param])
 
         # attach any hub variables that may be required in the query string
         for param in self.hubVariables["query_string"]:
@@ -568,29 +596,11 @@ class RequestHandler:
         regexStrings["baseURL"] = re.findall(hub_regexp, baseURL)
         queryObject["baseURL"] = baseURL
 
-        # foreach regexp result from our regexps, map values from the packet into the query object
-        for regExp in regexStrings:
-            for tup in regexStrings[regExp]:
-                match, key, default = tup
+        self.replace_template_with_values(regexStrings, queryObject, out)
+        self.replace_template_with_values(regexStrings, headers, out)
 
-                value = None
-
-                if key in out.keys():
-                    value = out[key]
-                elif default == "":
-                    # optional
-                    del queryObject[regExp]
-                    continue
-                elif default:
-                    value = default
-                else:
-                    # error
-                    return self.rPacket.marshall(False)
-
-                # coerce all into strings for now?
-                queryObject[regExp] = queryObject[regExp].replace(match, str(value))
-
-        print str(queryObject)
+        print "HEADERS: "
+        print headers
 
         # remove our now regexp'd baseURL from the query object
         baseURL = queryObject["baseURL"]
@@ -598,9 +608,9 @@ class RequestHandler:
 
         try:
             if request_type == "GET":
-                r = requests.get(baseURL, params=queryObject)
+                r = requests.get(baseURL, headers=headers, params=queryObject)
             elif request_type == "POST":
-                r = requests.post(baseURL, data=queryObject)
+                r = requests.post(baseURL, headers=headers, data=queryObject)
 
         except requests.exceptions.RequestException as e:
             print "Connection error: {}".format(e)
@@ -661,6 +671,7 @@ class RequestHandler:
         return self.processRESTRequest(rest, request_type, translation, part)
 
     def handleHelloPacket(self):
+        # self.hubVariables["query_string"]["school-id"] = "655BD"
         self.hubVariables["query_string"]["school-id"] = self.rPacket.get(0)
         self.hubVariables["query_string"]["pi-id"] = self.rPacket.get(1)
 
