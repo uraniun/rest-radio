@@ -73,7 +73,7 @@ class RequestHandler:
                 rest += [int(head[arrayMatch+1:head.find("]")])]
                 head = head[:arrayMatch]
 
-                print rest, head
+                # print rest, head
 
             if head not in json.keys():
                 return {}
@@ -113,7 +113,7 @@ class RequestHandler:
                 if regExp in object.keys():
                     object[regExp] = object[regExp].replace(match, str(value))
 
-        print str(object)
+        # print str(object)
 
     """
     given a start index, extract further objects from a radio packet, mapping them into the params object
@@ -626,7 +626,7 @@ class RequestHandler:
         url = self.rPacket.get(0)
 
         now = datetime.datetime.now()
-        print "------------------Time:", now.hour, now.minute, now.second
+        print "Request Time: %d:%d:%d" % (now.hour, now.minute, now.second)
 
         pieces = [x for x in url.split("/") if x is not '']
 

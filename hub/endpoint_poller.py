@@ -68,7 +68,6 @@ class EndpointPoller:
         if len(self.poll_urls) == 0:
             return
 
-        print self.poll_urls[self.url_index]
         res = requests.get(self.poll_urls[self.url_index])
 
         cached = safe_extract(self.poll_urls[self.url_index], self.cached_response, None)
@@ -78,8 +77,6 @@ class EndpointPoller:
         response_json = res.json()
 
         if cached:
-            print "cached"
-            print cached
             diff += [[r] for r in response_json.keys() if r not in cached.keys()]
             for r in response_json.keys():
                 record = response_json[r]

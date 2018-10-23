@@ -121,8 +121,8 @@ class SerialHandler():
 
         finalBytes += SLIP_END
 
-        for p in finalBytes:
-            print("%c [%d]" % (p, ord(p)))
+        # for p in finalBytes:
+        #     print("%c [%d]" % (p, ord(p)))
 
         self.s.write(''.join(finalBytes))
 

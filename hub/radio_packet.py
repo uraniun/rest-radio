@@ -44,8 +44,8 @@ class RadioPacket:
 
         print("uid: %d appid: %d namespaceid: %d rt: %d" % (uid, app_id, namespace_id, request_type))
 
-        for b in payload:
-            print "%c[%d]" % (b , ord(b))
+        # for b in payload:
+            # print "%c[%d]" % (b , ord(b))
 
         self.unmarshall(payload)
 
@@ -60,10 +60,10 @@ class RadioPacket:
         self.data = []
 
         if packet.__class__.__name__ == "RadioPacket":
-            print "init with class"
+            # print "init with class"
             self.__init_with_class(packet)
         elif packet != None:
-            print "init with packet"
+            # print "init with packet"
             self.__init_with_packet(packet)
         else:
             if appId == None or uid == None or rtype == None:
@@ -77,7 +77,7 @@ class RadioPacket:
     """
     def unmarshall(self, payload):
 
-        print "remaining len: %d" % (len(payload))
+        # print "remaining len: %d" % (len(payload))
 
         if len(payload) == 0:
             return
@@ -96,16 +96,16 @@ class RadioPacket:
                 data += p
 
             offset = len(data) + 1
-            print "STRING ", str(data)
+            # print "STRING ", str(data)
 
         elif subtype & RadioPacket.SUBTYPE_INT:
            data = struct.unpack_from("<i",remainder)[0]
-           print "INT ", str(data)
+        #    print "INT ", str(data)
            offset = 4
 
         elif subtype & RadioPacket.SUBTYPE_FLOAT:
            data = struct.unpack_from("<f",remainder)[0]
-           print "FLOAT ", str(data)
+        #    print "FLOAT ", str(data)
            offset = 4
 
         self.data += [data]
@@ -118,35 +118,37 @@ class RadioPacket:
     status can be True, False, or none. True / False indicates success, or failure. None indicates no status.
     """
     def marshall(self, status = None):
+        text_ret_code = ""
         if status == None:
             return_code = 0
+            text_ret_code = "none"
         elif status:
-            print "MARSHALL OK"
+            text_ret_code = "ok!"
             return_code = RadioPacket.REQUEST_STATUS_OK
         else:
-            print "MARSHALL ERR"
+            text_ret_code = "ERROR!"
             return_code = RadioPacket.REQUEST_STATUS_ERROR
 
         print("DATA:")
         print(self.data)
-        print(return_code)
+        print("Return code: " + text_ret_code)
 
         header = struct.pack(struct_format, self.app_id, self.namespace_id, self.uid, self.request_type | return_code)
 
         payload = ""
 
         for d in self.data:
-            print str(d)
+            # print str(d)
             if isinstance(d,basestring):
-                print "str"
+                # print "str"
                 payload += struct.pack("<B" + str(len(d) + 1) + "s", RadioPacket.SUBTYPE_STRING,(d + "\0").encode('utf8'))
 
             if isinstance(d,int):
-                print "INT"
+                # print "INT"
                 payload += struct.pack("<Bi",RadioPacket.SUBTYPE_INT, d)
 
             if isinstance(d,float):
-                print "float"
+                # print "float"
                 payload += struct.pack("<Bf", RadioPacket.SUBTYPE_FLOAT, d)
 
         return header + payload
