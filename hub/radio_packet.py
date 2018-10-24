@@ -56,7 +56,7 @@ class RadioPacket:
 
     Alternately, if packet is none, appId uid and rtype can be manually specified.
     """
-    def __init__(self, packet, appId = None, uid = None, rtype = None):
+    def __init__(self, packet, app_id = None, namespace_id = None, uid = None, request_type = None):
         self.data = []
 
         if packet.__class__.__name__ == "RadioPacket":
@@ -66,11 +66,12 @@ class RadioPacket:
             # print "init with packet"
             self.__init_with_packet(packet)
         else:
-            if appId == None or uid == None or rtype == None:
+            if app_id == None or namespace_id == None or uid == None or request_type == None:
                 raise Exception("unexpected type given")
-            self.app_id = appId
-            self.request_type = rtype
+            self.app_id = app_id
+            self.namespace_id = namespace_id
             self.uid = uid
+            self.request_type = request_type
 
     """
     Converts a byte string into member variables used in this instance

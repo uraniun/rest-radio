@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import os, sys, struct, json, re, pickle, requests
+import os, sys, struct, json, re, pickle, requests, datetime
 from auto_detector import auto_detect_microbit
 from radio_packet import RadioPacket
 from request_handler import RequestHandler
@@ -61,23 +61,35 @@ translationsFile = open("./translations.json")
 translations = json.load(translationsFile)
 github_poller = URLPoller(hub_variables["translations_json"]["url"], hub_variables["translations_json"]["poll_time"])
 
-while(True):
+packet_count = 0
 
-    # if the bridged micro:bit has sent us data, process
-    if serial_handler.buffered() > 0:
-        rPacket = RadioPacket(serial_handler.read_packet())
-        requestHandler = RequestHandler(rPacket,translations, shared_dict, None)
+try:
+    while(True):
 
-        # spawn a new thread to handle the request
-        p = Process(target=handleRequest, args=(requestHandler, serial_handler,))
-        p.start()
+        # if the bridged micro:bit has sent us data, process
+        if serial_handler.buffered() > 0:
+            rPacket = RadioPacket(serial_handler.read_packet())
 
-    # every few minutes we check github for new translations.
-    if github_poller.poll():
-        print "Updating translations from Github"
-        translations = github_poller.get_cached()
-        with open("./translations-remote.json", 'w') as f:
-            f.write(json.dumps(github_poller.get_cached(), indent=4, sort_keys=True))
+            packet_count += 1
+            now = datetime.datetime.now()
+            print "Request Time: %d:%d:%d; Packets Seen: %d" % (now.hour, now.minute, now.second, packet_count)
 
-    # prevent burning the processor :)
-    sleep(0.01)
+            requestHandler = RequestHandler(rPacket,translations, shared_dict, None)
+
+            # spawn a new thread to handle the request
+            p = Process(target=handleRequest, args=(requestHandler, serial_handler,))
+            p.start()
+
+        # every few minutes we check github for new translations.
+        if github_poller.poll():
+            print "Updating translations from Github"
+            translations = github_poller.get_cached()
+            with open("./translations-remote.json", 'w') as f:
+                f.write(json.dumps(github_poller.get_cached(), indent=4, sort_keys=True))
+
+        # prevent burning the processor :)
+        sleep(0.01)
+except Exception as e:
+    r = RadioPacket(None, app_id = 0, namespace_id = 0, uid = 0, request_type = RadioPacket.REQUEST_TYPE_HELLO)
+    r.append(-1)
+    serial_handler.write_packet(r.marshall(False))

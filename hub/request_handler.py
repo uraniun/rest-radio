@@ -1,15 +1,8 @@
-from radio_packet import RadioPacket
-import re
-import requests
-import urllib
-import json
-import pickle
-import os
-import datetime
+import re, requests, urllib, json, pickle, os, datetime
 
+from radio_packet import RadioPacket
 from utils import hub_regexp, safe_extract
 from pathlib import Path
-import datetime
 from datetime import timedelta
 """
 A class that handles two types of micro:bit request:
@@ -625,9 +618,6 @@ class RequestHandler:
         # every rest request should have the URL as the first item.
         url = self.rPacket.get(0)
 
-        now = datetime.datetime.now()
-        print "Request Time: %d:%d:%d" % (now.hour, now.minute, now.second)
-
         pieces = [x for x in url.split("/") if x is not '']
 
         part, rest = pieces[0], pieces[1:]
@@ -647,15 +637,26 @@ class RequestHandler:
 
         return self.processRESTRequest(rest, request_type, translation, part)
 
+    '''
+    A hello packet has a status and optionally the hub or school id (at the moment..)
+    0 is the status
+    1 is the school id,
+    2 is the hub id
+    '''
     def handleHelloPacket(self):
 
+        print "HELLO PACKET!"
+        status = self.rPacket.get(0)
+
         self.hubVariables["query_string"] = {
-            "school-id":"6558D", #self.rPacket.get(0)
-            "pi-id": self.rPacket.get(1)
+            "school-id":"6558D", #self.rPacket.get(1)
+            "pi-id": self.rPacket.get(2)
         }
 
         self.hubVariables["authenticated"] = True
-        return None
+
+        self.returnPacket.append(0) # 0  means ok
+        return self.returnPacket.marshall(True)
 
     def handleCloudVariable(self):
         namespaceHash = self.rPacket.get(0)
