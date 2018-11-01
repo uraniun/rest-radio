@@ -553,9 +553,10 @@
     "energyMeter":{
         "POST" : {
             "apiPrefix":"send",
-            "baseURL":"http://localhost:8000/api/data-store/energy/",
+            "baseURL":"https://staging.energyinschools.co.uk/api/v1/micro-bit/historical-data/",
             "microbitQueryString":"/%endpoint%",
             "queryObject":{
+                "namespace":"energy",
                 "name":"%name%",
                 "value":"%value%",
                 "type":"%type%",

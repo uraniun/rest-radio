@@ -648,6 +648,7 @@ class RequestHandler:
         print "HELLO PACKET!"
         status = self.rPacket.get(0)
 
+        print "REMEMBER TO RESTORE SCHOOL ID..."
         self.hubVariables["query_string"] = {
             "school-id":"6558D", #self.rPacket.get(1)
             "pi-id": self.rPacket.get(2)
