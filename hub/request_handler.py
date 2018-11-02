@@ -591,6 +591,9 @@ class RequestHandler:
             elif request_type == "POST":
                 r = requests.post(baseURL, headers=headers, data=queryObject)
 
+            print "Request sent to: %s with headers: %s and data: %s" % (baseURL, str(headers), str(queryObject))
+            print str(r)
+            #TODO: handle bad status codes...
         except requests.exceptions.RequestException as e:
             print "Connection error: {}".format(e)
             return self.returnPacket.marshall(False)
@@ -650,7 +653,7 @@ class RequestHandler:
 
         print "REMEMBER TO RESTORE SCHOOL ID..."
         self.hubVariables["query_string"] = {
-            "school-id":"6558D", #self.rPacket.get(1)
+            "school-id":"655BD", #self.rPacket.get(1)
             "pi-id": self.rPacket.get(2)
         }
 
