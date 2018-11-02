@@ -82,14 +82,21 @@ try:
 
         # every few minutes we check github for new translations.
         if github_poller.poll():
+
+            temp_translations = github_poller.get_cached()
+            if temp_translations["version"] < translations["version"]:
+                continue
+
+            translations = temp_translations
             print "Updating translations from Github"
-            translations = github_poller.get_cached()
+
             with open("./translations-remote.json", 'w') as f:
                 f.write(json.dumps(github_poller.get_cached(), indent=4, sort_keys=True))
 
         # prevent burning the processor :)
         sleep(0.01)
 except Exception as e:
+    print str(e)
     r = RadioPacket(None, app_id = 0, namespace_id = 0, uid = 0, request_type = RadioPacket.REQUEST_TYPE_HELLO)
     r.append(-1)
     serial_handler.write_packet(r.marshall(False))
