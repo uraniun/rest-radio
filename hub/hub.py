@@ -84,7 +84,7 @@ try:
         if github_poller.poll():
 
             temp_translations = github_poller.get_cached()
-            if temp_translations["version"] < translations["version"]:
+            if temp_translations["version"] <= translations["version"]:
                 continue
 
             translations = temp_translations
