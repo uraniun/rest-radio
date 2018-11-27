@@ -468,6 +468,28 @@
                             "name":"result"
                         }
                     ]
+                },
+                "shareHystoricalData":{
+                    "parameters":[
+                        {
+                            "name":"value",
+                            "type":"string"
+                        },
+                        {
+                            "name":"name",
+                            "type":"string"
+                        },
+                        {
+                            "name":"unitname",
+                            "type":"string"
+                        }
+                    ],
+                    "returns":[
+                        {
+                            "type":"string",
+                            "name":"result"
+                        }
+                    ]
                 }
             }
         }

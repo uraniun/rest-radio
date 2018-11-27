@@ -18,6 +18,8 @@ class ShareService : public MicroBitComponent
 
     ShareService(MicroBitPeridoRadio& r);
 
+	ManagedString setShareHystoricalData(ManagedString value, ManagedString name, ManagedString unitname);
+
     ManagedString setShareData(ManagedString value, ManagedString name, int level);
 
     ManagedString getFetchData(ManagedString endpoint);
