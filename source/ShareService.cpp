@@ -11,13 +11,12 @@ void ShareService::idleTick()
     
 }
 
-ManagedString ShareService::setShareHistoricalData(ManagedString value, ManagedString name, ManagedString space, ManagedString tname , int unit) {
+ManagedString ShareService::setShareHistoricalData(ManagedString value, ManagedString name, ManagedString space, ManagedString unit) {
     DynamicType t;
     t.appendString(value);
     t.appendString(name);
     t.appendString(space);
-    t.appendString(tname);
-    t.appendInteger(unit);
+    t.appendString(unit);
     DynamicType res = radio.cloud.rest.postRequest("/share/historicalData/", t);
     return res.getString(0);
 }
