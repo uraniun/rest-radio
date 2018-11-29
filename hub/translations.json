@@ -424,6 +424,7 @@
         "GET" : {
             "apiPrefix":"get",
             "baseURL":"https://energyinschools.co.uk/api/v1/micro-bit/variables/",
+	    "extraURL":"https://energyinschools.co.uk/api/v1/micro-bit/historical-data/",
             "microbitQueryString":"/%endpoint%/%unit?%",
             "compulsoryParameters":[
                 {
@@ -445,6 +446,7 @@
         "POST" : {
             "apiPrefix":"set",
             "baseURL":"https://energyinschools.co.uk/api/v1/micro-bit/variables/",
+	    "extraURL":"https://energyinschools.co.uk/api/v1/micro-bit/historical-data/",
             "microbitQueryString":"/%endpoint%/",
             "endpoint":{
                 "shareData":{
@@ -469,7 +471,7 @@
                         }
                     ]
                 },
-                "shareHystoricalData":{
+		"historicalData":{
                     "parameters":[
                         {
                             "name":"value",
@@ -576,14 +578,14 @@
     "energyMeter":{
         "POST" : {
             "apiPrefix":"send",
-            "baseURL":"https://staging.energyinschools.co.uk/api/v1/micro-bit/historical-data/",
+            "baseURL":"https://energyinschools.co.uk/api/v1/micro-bit/historical-data/",
             "microbitQueryString":"/%endpoint%",
             "queryObject":{
                 "namespace":"energy",
                 "name":"%name%",
                 "value":"%value%",
                 "type":"%type%",
-                "unit":"watts"
+                "unit":"watt"
             },
             "headers":{
                 "pi-id":"%pi-id%",

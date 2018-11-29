@@ -400,8 +400,25 @@ class RequestHandler:
                     print "Connection error: {}".format(e)
                     self.returnPacket.append("API CONNECTION ERROR")
                     return self.returnPacket.marshall(True)
+            if url[0] == "historicalData":
+                jsonData = {'namespace': 'histery', 'name': ' ', 'type': 0 ,'unit':' ' , 'time':' ','value':' '}
+                jsonData['value'] = self.rPacket.get(1)
+                jsonData['name'] = self.rPacket.get(2)
+		jsonData['namespace'] = self.rPacket.get(3)
+		jsonData['unit'] = self.rPacket.get(4)
+		jsonData['time'] = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")
+		URLreq = operation["extraURL"]
+                #print jsonData
+                try:
+                    resp = requests.post(
+                        URLreq, headers=PI_HEADER, data=jsonData)
+		    #print resp
+                except requests.exceptions.RequestException as e:
+                    print "Connection error: {}".format(e)
+                    self.returnPacket.append("API CONNECTION ERROR")
+                    return self.returnPacket.marshall(True)
 
-            print resp
+            #print resp
             self.returnPacket.append(res)
             return self.returnPacket.marshall(True)
 
