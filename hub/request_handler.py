@@ -171,15 +171,17 @@ class RequestHandler:
 
         return out
 
+    def degree_to_compass_str(self, degree):
+        val = int((degree / 22.5) + .5)
+        arr = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+        return arr[(val % 16)]
+
     def processRESTRequest(self, url, request_type, translation, part):
         operation = translation[request_type]
         if "baseURL" in operation:
             baseURL = operation["baseURL"]
 
         urlFormat = [x for x in operation["microbitQueryString"].split("/") if x]
-
-        #print "baseURL"
-        #print baseURL
 
         # the following giant mess needs to be refactored at some point... but not now.
         if part == PKG_CARBON:
@@ -288,6 +290,40 @@ class RequestHandler:
                 return self.returnPacket.marshall(True)
 
             self.returnPacket.append(res)
+            return self.returnPacket.marshall(True)
+
+        if part == PKG_WEATHER:
+            location_type = self.rPacket.get(1)
+            location = self.rPacket.get(2)
+
+            if url[0] == 'forecastTomorrow':
+                baseURL = operation['forecastURL']
+
+            if location_type == 0:
+                req_url = baseURL + "city=%s" % location
+            elif location_type == 1:
+                req_url = baseURL + "postal_code=%s" % location
+
+            try:
+                resp = requests.get(req_url, headers=PI_HEADER)
+            except requests.exceptions.RequestException as e:
+                print "Connection error: {}".format(e)
+                self.returnPacket.append("API CONNECTION ERROR")
+                return self.returnPacket.marshall(True)
+
+            result = "NOT AVAILABLE"
+            if resp.status_code == 200:
+                json_response = json.loads(resp.text)
+                if url[0] == "temperature":
+                    result = str(json_response['temperature']['average'])
+                elif url[0] == "wind":
+                    degree = json_response['wind']['degree']
+                    if degree:
+                        result = self.degree_to_compass_str(degree)
+                elif url[0] == "forecastNow" or url[0] == "forecastTomorrow":
+                    result = json_response['detailed_status']
+
+            self.returnPacket.append(result)
             return self.returnPacket.marshall(True)
 
         if part == PKG_ISS:
@@ -400,6 +436,7 @@ class RequestHandler:
                     print "Connection error: {}".format(e)
                     self.returnPacket.append("API CONNECTION ERROR")
                     return self.returnPacket.marshall(True)
+
             if url[0] == "historicalData":
                 jsonData = {'namespace': 'histery', 'name': ' ', 'type': 0 ,'unit':' ' , 'time':' ','value':' '}
                 jsonData['value'] = self.rPacket.get(1)

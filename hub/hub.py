@@ -44,7 +44,7 @@ shared_manager = Manager()
 # NOTE: when updating an inside dict, use the top level dictionary.
 shared_dict = shared_manager.dict(hub_variables)
 
-auto_detect = False
+auto_detect = True
 # if auto-detect is False, this path will be used.
 selected = "/dev/cu.usbmodem1462"
 
